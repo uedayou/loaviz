@@ -11,7 +11,7 @@ data[n].uri に Linked Open Addresses Japan の行政区画の境界データを
         ...
     ];
 
-Linked Open Addresses Japn のデータを使えば、GeojsonやShapeファイル等、GISデータを直接扱うことなくビジュアライズが可能です。  
+Linked Open Addresses Japan のデータを使えば、GeojsonやShapeファイル等、GISデータを直接扱うことなくビジュアライズが可能です。  
 
 ## デモ
 
