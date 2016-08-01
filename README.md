@@ -11,7 +11,7 @@ loaj-demo.html の data[n].uri に Linked Open Addresses Japan の行政区画�
         ...
     ];
 
-Linked Open Addresses Japan のデータを使えば、GeojsonやShapeファイル等、GISデータを直接扱うことなくビジュアライズが可能です。  
+Linked Open Addresses Japan のデータを使えば、GeojsonやShapeファイル等、GISデータを直接扱うことなく行政区画のビジュアライズが可能です。  
 
 ## デモ
 
