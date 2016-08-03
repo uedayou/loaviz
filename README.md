@@ -15,5 +15,8 @@ Linked Open Addresses Japan のデータを使えば、GeojsonやShapeファイ�
 
 ## デモ
 
-<http://uedayou.net/loaviz/>  
+<http://uedayou.net/loaviz/>
+
+東京都知事選挙の投票率
+<http://uedayou.net/loaviz/tokyo-gubernatorial-election16.html>
 
