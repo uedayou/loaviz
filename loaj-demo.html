@@ -1,19 +1,31 @@
-﻿<html>
+<html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Linked Open Addresses Japan を使った東京都の境界データ表示プログラム</title>
-<link rel="stylesheet" href="leaflet.d3/css/colorbrewer.css" />
 <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+<link rel="stylesheet" href="d3-tip/examples/example-styles.css">
+
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 <script type="text/javascript" src="jquery-ajaxQueue/dist/jquery.ajaxQueue.min.js"></script>
 <script src='Wicket/wicket.js'></script>
 <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
 <script src="http://d3js.org/d3.v3.js"></script>
-<script type="text/javascript" src="leaflet.d3/leaflet.d3.js"></script>
+
+<!-- leaflet.D3 -->
+<!--
+<link rel="stylesheet" href="http://uedayou.net/loaviz/leaflet.d3/css/colorbrewer.css" />
+<script type="text/javascript" src="http://uedayou.net/loaviz/leaflet.d3/leaflet.d3.js"></script>
+-->
+
+<script type="text/javascript" src="Leaflet.D3SvgOverlay/L.D3SvgOverlay.js"></script>
 <script src="spin.min.js"></script>
 <script src="Leaflet.Spin/leaflet.spin.js"></script>
+<script src="d3-tip/index.js"></script>
 <style type="text/css">
 body {margin:0px;padding:0px;}
+/* leaflet.D3 */
+/*
 .town {
 	stroke-width : 0;
 	fill: #000;
@@ -25,6 +37,7 @@ body {margin:0px;padding:0px;}
   fill-opacity: .7;
   cursor:pointer;
 }
+*/
 </style>
 </head>
 <body>
@@ -105,6 +118,19 @@ attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contri
 });
 map.addLayer(tiles);
 
+// d3-tip
+var tip = d3.tip().attr('class', 'd3-tip').html(function(p) {
+	var out =[];
+	for(var key in p.properties){
+		out.push("<strong>"+key+"</strong>: "+p.properties[key]);
+	}
+	return out.join("<br/>"); 
+});
+// centering
+tip.offset(function() {
+  return [this.getBBox().height*d3.transform(d3.select(this.parentNode).attr("transform")).scale[0] / 2, 0];
+});
+
 console.log("start loading.");
 map.spin(true);
 $.each(data, function(i,d){
@@ -132,8 +158,13 @@ function loadPolygonFromLOAJ(uri, option) {
 		_o["geometry"] = obj;
 		_o["properties"] = {"name":label};
 		_geoArray[0] = _o;
+
+/*
+		// leaflet.D3
+		// https://github.com/calvinmetcalf/leaflet.d3
 		var geoJSONObj = {"type": "FeatureCollection"};
 		geoJSONObj["features"] = _geoArray;
+
 		var d3Layer=L.d3(geoJSONObj,{
 			svgClass : "Spectral",
 			pathClass:function(d) {
@@ -143,12 +174,30 @@ function loadPolygonFromLOAJ(uri, option) {
 		d3Layer.bindPopup(function(p){
 			var out =[];
 			for(var key in p){
-			if(key !== "FOURCOLOR"){
 				out.push("<strong>"+key+"</strong>: "+p[key]);
-				}
 			}
 			return out.join("<br/>");
 		});
+		//
+*/
+
+		// leaflet.D3SvgOverlay
+		// https://github.com/teralytics/Leaflet.D3SvgOverlay
+		var d3Layer = L.d3SvgOverlay(function(sel, proj) {
+			var upd = sel.selectAll('path').data(_geoArray);
+			upd.enter()
+		    .append('path')
+		    .attr('d', proj.pathFromGeojson)
+		    .attr('stroke', 'black')
+		    .attr('fill', function(){ return d3.hsl(Math.random() * 360, 0.9, 0.5) })
+		    .attr('fill-opacity', '0.5');
+			upd.attr('stroke-width', 1 / proj.scale);
+			upd.call(tip)
+			.on('mouseover', tip.show)
+			.on('mouseout', tip.hide);
+		});
+		//
+
 		map.addLayer(d3Layer);
 		if (data[data.length-1].uri == uri) {
 			console.log("finished loading.");
@@ -156,6 +205,7 @@ function loadPolygonFromLOAJ(uri, option) {
 		}
 	});
 }
+
 </script>
 
 <script>
