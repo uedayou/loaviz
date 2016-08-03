@@ -206,7 +206,9 @@ function loadPolygonFromLOAJ(uri, option) {
 		wicket.read(wkt);
 		var obj = wicket.toJson();
 		_o["geometry"] = obj;
-		_o["properties"] = {"name":label,data_label:option[data_label]};
+		_o["properties"] = {};
+		_o["properties"]["name"] = label;
+		_o["properties"][data_label] = option[data_label];
 		_geoArray[0] = _o;
 
 		// leaflet.D3SvgOverlay
