@@ -4,7 +4,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Linked Open Addresses Japan を使った東京都の境界データ表示プログラム</title>
 <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
-<link rel="stylesheet" href="d3-tip/examples/example-styles.css">
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 <script type="text/javascript" src="jquery-ajaxQueue/dist/jquery.ajaxQueue.min.js"></script>
@@ -21,7 +20,6 @@
 <script type="text/javascript" src="Leaflet.D3SvgOverlay/L.D3SvgOverlay.js"></script>
 <script src="spin.min.js"></script>
 <script src="Leaflet.Spin/leaflet.spin.js"></script>
-<script src="d3-tip/index.js"></script>
 <style type="text/css">
 body {margin:0px;padding:0px;}
 /* leaflet.D3 */
@@ -118,19 +116,6 @@ attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contri
 });
 map.addLayer(tiles);
 
-// d3-tip
-var tip = d3.tip().attr('class', 'd3-tip').html(function(p) {
-	var out =[];
-	for(var key in p.properties){
-		out.push("<strong>"+key+"</strong>: "+p.properties[key]);
-	}
-	return out.join("<br/>"); 
-});
-// centering
-tip.offset(function() {
-  return [this.getBBox().height*d3.transform(d3.select(this.parentNode).attr("transform")).scale[0] / 2, 0];
-});
-
 console.log("start loading.");
 map.spin(true);
 $.each(data, function(i,d){
@@ -157,7 +142,23 @@ function loadPolygonFromLOAJ(uri, option) {
 		var obj = wicket.toJson();
 		_o["geometry"] = obj;
 		_o["properties"] = {"name":label};
+		var importance = [];
+		if (obj.type == "MultiPolygon") {
+			var mx = 0;
+			$.each(obj.coordinates, function(i,_d){
+				var area = polygonArea(_d[0],_d[0].length);
+				if (mx<area) {
+					importance = _d[0];
+					mx = area;
+				}
+			});
+		}
+		else importance = obj.coordinates[0];
+		_o["internal"] = {"center":getCentroid2(importance)};
 		_geoArray[0] = _o;
+
+		// tooltip
+		var TooltipMarker = '';
 
 /*
 		// leaflet.D3
@@ -192,9 +193,34 @@ function loadPolygonFromLOAJ(uri, option) {
 		    .attr('fill', function(){ return d3.hsl(Math.random() * 360, 0.9, 0.5) })
 		    .attr('fill-opacity', '0.5');
 			upd.attr('stroke-width', 1 / proj.scale);
-			upd.call(tip)
-			.on('mouseover', tip.show)
-			.on('mouseout', tip.hide);
+			upd.on('mouseover', function(d) {
+          		var Lati = d.internal.center[1];
+          		var Longi = d.internal.center[0];
+
+          		if (!isFinite(Lati)||!isFinite(Longi)) return;
+
+		        var markerIcon = L.icon({
+		            iconUrl: 'Empty_Icon.png',
+		            iconSize: [38, 95],
+		            shadowSize: [50, 64],
+		            iconAnchor: [Lati, Longi],
+		        });
+
+		        TooltipMarker = new L.Marker([Lati, Longi], {
+		            icon: markerIcon
+		        });
+		        map.addLayer(TooltipMarker);
+
+				var out =[];
+				for(var key in d.properties){
+					out.push("<strong>"+key+"</strong>: "+d.properties[key]);
+				}
+		        TooltipMarker.bindPopup(out.join("<br/>"));
+		        TooltipMarker.openPopup();
+	        })
+			.on('mouseout', function(d) {
+				if (TooltipMarker != '') map.removeLayer(TooltipMarker);
+	        });
 		});
 		//
 
@@ -205,6 +231,38 @@ function loadPolygonFromLOAJ(uri, option) {
 		}
 	});
 }
+
+// http://stackoverflow.com/questions/22796520/finding-the-center-of-leaflet-polygon
+var getCentroid2 = function (arr) {
+    var twoTimesSignedArea = 0;
+    var cxTimes6SignedArea = 0;
+    var cyTimes6SignedArea = 0;
+
+    var length = arr.length
+
+    var x = function (i) { return parseFloat(arr[i % length][0]) };
+    var y = function (i) { return parseFloat(arr[i % length][1]) };
+
+    for ( var i = 0; i < arr.length; i++) {
+        var twoSA = x(i)*y(i+1) - x(i+1)*y(i);
+        twoTimesSignedArea += twoSA;
+        cxTimes6SignedArea += (x(i) + x(i+1)) * twoSA;
+        cyTimes6SignedArea += (y(i) + y(i+1)) * twoSA;
+    }
+    var sixSignedArea = 3 * twoTimesSignedArea;
+    return [ cxTimes6SignedArea / sixSignedArea, cyTimes6SignedArea / sixSignedArea];        
+}
+
+function polygonArea(coord, numPoints) { 
+  area = 0;
+  j = numPoints-1;
+  for (i=0; i<numPoints; i++){
+  	area = area +  (coord[j][0]+coord[i][0]) * (coord[j][1]-coord[i][1]); 
+    j = i;
+  }
+  return area/2;
+}
+
 
 </script>
 
