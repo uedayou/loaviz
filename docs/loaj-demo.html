@@ -1,0 +1,281 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Linked Open Addresses Japan を使った東京都の境界データ表示プログラム</title>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script type="text/javascript" src="jquery-ajaxQueue/dist/jquery.ajaxQueue.min.js"></script>
+<script src='Wicket/wicket.js'></script>
+<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+<script src="http://d3js.org/d3.v3.js"></script>
+
+<!-- leaflet.D3 -->
+<!--
+<link rel="stylesheet" href="http://uedayou.net/loaviz/leaflet.d3/css/colorbrewer.css" />
+<script type="text/javascript" src="http://uedayou.net/loaviz/leaflet.d3/leaflet.d3.js"></script>
+-->
+
+<script type="text/javascript" src="Leaflet.D3SvgOverlay/L.D3SvgOverlay.js"></script>
+<script src="spin.min.js"></script>
+<script src="Leaflet.Spin/leaflet.spin.js"></script>
+<style type="text/css">
+body {margin:0px;padding:0px;}
+/* leaflet.D3 */
+/*
+.town {
+	stroke-width : 0;
+	fill: #000;
+	fill-opacity: .6;
+	stroke: #fff; 
+}
+.town:hover {
+  fill: rgb(109, 28, 28);
+  fill-opacity: .7;
+  cursor:pointer;
+}
+*/
+</style>
+</head>
+<body>
+
+<div id="map" style="width:100%; height:100%"></div>
+
+<script>
+var data = [
+{uri:"http://uedayou.net/loa/東京都あきる野市"},
+{uri:"http://uedayou.net/loa/東京都三宅村"},
+{uri:"http://uedayou.net/loa/東京都三鷹市"},
+{uri:"http://uedayou.net/loa/東京都世田谷区"},
+{uri:"http://uedayou.net/loa/東京都中央区"},
+{uri:"http://uedayou.net/loa/東京都中野区"},
+{uri:"http://uedayou.net/loa/東京都八丈町"},
+{uri:"http://uedayou.net/loa/東京都八王子市"},
+{uri:"http://uedayou.net/loa/東京都利島村"},
+{uri:"http://uedayou.net/loa/東京都北区"},
+{uri:"http://uedayou.net/loa/東京都千代田区"},
+{uri:"http://uedayou.net/loa/東京都台東区"},
+{uri:"http://uedayou.net/loa/東京都品川区"},
+{uri:"http://uedayou.net/loa/東京都国分寺市"},
+{uri:"http://uedayou.net/loa/東京都国立市"},
+{uri:"http://uedayou.net/loa/東京都墨田区"},
+{uri:"http://uedayou.net/loa/東京都多摩市"},
+{uri:"http://uedayou.net/loa/東京都大島町"},
+{uri:"http://uedayou.net/loa/東京都大田区"},
+{uri:"http://uedayou.net/loa/東京都小平市"},
+{uri:"http://uedayou.net/loa/東京都小笠原村"},
+{uri:"http://uedayou.net/loa/東京都小金井市"},
+{uri:"http://uedayou.net/loa/東京都府中市"},
+{uri:"http://uedayou.net/loa/東京都御蔵島村"},
+{uri:"http://uedayou.net/loa/東京都文京区"},
+{uri:"http://uedayou.net/loa/東京都新宿区"},
+{uri:"http://uedayou.net/loa/東京都新島村"},
+{uri:"http://uedayou.net/loa/東京都日野市"},
+{uri:"http://uedayou.net/loa/東京都昭島市"},
+{uri:"http://uedayou.net/loa/東京都杉並区"},
+{uri:"http://uedayou.net/loa/東京都東久留米市"},
+{uri:"http://uedayou.net/loa/東京都東大和市"},
+{uri:"http://uedayou.net/loa/東京都東村山市"},
+{uri:"http://uedayou.net/loa/東京都板橋区"},
+{uri:"http://uedayou.net/loa/東京都武蔵村山市"},
+{uri:"http://uedayou.net/loa/東京都武蔵野市"},
+{uri:"http://uedayou.net/loa/東京都江戸川区"},
+{uri:"http://uedayou.net/loa/東京都江東区"},
+{uri:"http://uedayou.net/loa/東京都清瀬市"},
+{uri:"http://uedayou.net/loa/東京都渋谷区"},
+{uri:"http://uedayou.net/loa/東京都港区"},
+{uri:"http://uedayou.net/loa/東京都狛江市"},
+{uri:"http://uedayou.net/loa/東京都町田市"},
+{uri:"http://uedayou.net/loa/東京都目黒区"},
+{uri:"http://uedayou.net/loa/東京都神津島村"},
+{uri:"http://uedayou.net/loa/東京都福生市"},
+{uri:"http://uedayou.net/loa/東京都稲城市"},
+{uri:"http://uedayou.net/loa/東京都立川市"},
+{uri:"http://uedayou.net/loa/東京都練馬区"},
+{uri:"http://uedayou.net/loa/東京都羽村市"},
+{uri:"http://uedayou.net/loa/東京都荒川区"},
+{uri:"http://uedayou.net/loa/東京都葛飾区"},
+{uri:"http://uedayou.net/loa/東京都西多摩郡奥多摩町"},
+{uri:"http://uedayou.net/loa/東京都西多摩郡日の出町"},
+{uri:"http://uedayou.net/loa/東京都西多摩郡檜原村"},
+{uri:"http://uedayou.net/loa/東京都西多摩郡瑞穂町"},
+{uri:"http://uedayou.net/loa/東京都西東京市"},
+{uri:"http://uedayou.net/loa/東京都調布市"},
+{uri:"http://uedayou.net/loa/東京都豊島区"},
+{uri:"http://uedayou.net/loa/東京都足立区"},
+{uri:"http://uedayou.net/loa/東京都青ケ島村"},
+{uri:"http://uedayou.net/loa/東京都青梅市"},
+];
+
+// tokyo
+var map = L.map('map').setView([35.674487, 139.74708],10);
+var tiles = L.tileLayer('http://tile.openstreetmap.jp/{z}/{x}/{y}.png', {
+maxZoom: 18,
+attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+});
+map.addLayer(tiles);
+
+console.log("start loading.");
+map.spin(true);
+$.each(data, function(i,d){
+	if (d.uri.lastIndexOf('http://uedayou.net/loa/', 0) !== 0) {
+		data[i].uri = 'http://uedayou.net/loa/'+d.uri;
+	}
+	loadPolygonFromLOAJ(d.uri);
+});
+
+function loadPolygonFromLOAJ(uri, option) {
+	$.ajaxQueue({
+	    url: uri+".json"
+	}).done(function( json ) {
+		console.log(uri);
+		var json = json[uri];
+		if ("http://www.opengis.net/ont/geosparql#wktLiteral" in json) ; else return;
+		var label = json["http://www.w3.org/2000/01/rdf-schema#label"][0]["value"];
+		var wkt = json["http://www.opengis.net/ont/geosparql#wktLiteral"][0]["value"];
+		var _geoArray = new Array();
+		var _o = new Object();
+		_o["type"] = "Feature";
+		wicket = new Wkt.Wkt();
+		wicket.read(wkt);
+		var obj = wicket.toJson();
+		_o["geometry"] = obj;
+		_o["properties"] = {"name":label};
+		var importance = [];
+		if (obj.type == "MultiPolygon") {
+			var mx = 0;
+			$.each(obj.coordinates, function(i,_d){
+				var area = polygonArea(_d[0],_d[0].length);
+				if (mx<area) {
+					importance = _d[0];
+					mx = area;
+				}
+			});
+		}
+		else importance = obj.coordinates[0];
+		_o["internal"] = {"center":getCentroid2(importance)};
+		_geoArray[0] = _o;
+
+		// tooltip
+		var TooltipMarker = '';
+
+/*
+		// leaflet.D3
+		// https://github.com/calvinmetcalf/leaflet.d3
+		var geoJSONObj = {"type": "FeatureCollection"};
+		geoJSONObj["features"] = _geoArray;
+
+		var d3Layer=L.d3(geoJSONObj,{
+			svgClass : "Spectral",
+			pathClass:function(d) {
+				return "town q" + Math.floor((Math.random() * 10)) +"-11";
+			}
+		});
+		d3Layer.bindPopup(function(p){
+			var out =[];
+			for(var key in p){
+				out.push("<strong>"+key+"</strong>: "+p[key]);
+			}
+			return out.join("<br/>");
+		});
+		//
+*/
+
+		// leaflet.D3SvgOverlay
+		// https://github.com/teralytics/Leaflet.D3SvgOverlay
+		var d3Layer = L.d3SvgOverlay(function(sel, proj) {
+			var upd = sel.selectAll('path').data(_geoArray);
+			upd.enter()
+		    .append('path')
+		    .attr('d', proj.pathFromGeojson)
+		    .attr('stroke', 'black')
+		    .attr('fill', function(){ return d3.hsl(Math.random() * 360, 0.9, 0.5) })
+		    .attr('fill-opacity', '0.5');
+			upd.attr('stroke-width', 1 / proj.scale);
+			upd.on('mouseover', function(d) {
+          		var Lati = d.internal.center[1];
+          		var Longi = d.internal.center[0];
+
+          		if (!isFinite(Lati)||!isFinite(Longi)) return;
+
+		        var markerIcon = L.icon({
+		            iconUrl: 'Empty_Icon.png',
+		            iconSize: [38, 95],
+		            shadowSize: [50, 64],
+		            iconAnchor: [Lati, Longi],
+		        });
+
+		        TooltipMarker = new L.Marker([Lati, Longi], {
+		            icon: markerIcon
+		        });
+		        map.addLayer(TooltipMarker);
+
+				var out =[];
+				for(var key in d.properties){
+					out.push("<strong>"+key+"</strong>: "+d.properties[key]);
+				}
+		        TooltipMarker.bindPopup(out.join("<br/>"));
+		        TooltipMarker.openPopup();
+	        })
+			.on('mouseout', function(d) {
+				if (TooltipMarker != '') map.removeLayer(TooltipMarker);
+	        });
+		});
+		//
+
+		map.addLayer(d3Layer);
+		if (data[data.length-1].uri == uri) {
+			console.log("finished loading.");
+			map.spin(false);
+		}
+	});
+}
+
+// http://stackoverflow.com/questions/22796520/finding-the-center-of-leaflet-polygon
+var getCentroid2 = function (arr) {
+    var twoTimesSignedArea = 0;
+    var cxTimes6SignedArea = 0;
+    var cyTimes6SignedArea = 0;
+
+    var length = arr.length
+
+    var x = function (i) { return parseFloat(arr[i % length][0]) };
+    var y = function (i) { return parseFloat(arr[i % length][1]) };
+
+    for ( var i = 0; i < arr.length; i++) {
+        var twoSA = x(i)*y(i+1) - x(i+1)*y(i);
+        twoTimesSignedArea += twoSA;
+        cxTimes6SignedArea += (x(i) + x(i+1)) * twoSA;
+        cyTimes6SignedArea += (y(i) + y(i+1)) * twoSA;
+    }
+    var sixSignedArea = 3 * twoTimesSignedArea;
+    return [ cxTimes6SignedArea / sixSignedArea, cyTimes6SignedArea / sixSignedArea];        
+}
+
+function polygonArea(coord, numPoints) { 
+  area = 0;
+  j = numPoints-1;
+  for (i=0; i<numPoints; i++){
+  	area = area +  (coord[j][0]+coord[i][0]) * (coord[j][1]-coord[i][1]); 
+    j = i;
+  }
+  return area/2;
+}
+
+
+</script>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-45357765-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,316 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>東京都知事選挙2016投票率</title>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script type="text/javascript" src="jquery-ajaxQueue/dist/jquery.ajaxQueue.min.js"></script>
+<script src='Wicket/wicket.js'></script>
+<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+<script src="http://d3js.org/d3.v3.js"></script>
+<script type="text/javascript" src="Leaflet.D3SvgOverlay/L.D3SvgOverlay.js"></script>
+<script src="spin.min.js"></script>
+<script src="Leaflet.Spin/leaflet.spin.js"></script>
+<style type="text/css">
+body {margin:0px;padding:0px;}
+/* 凡例のスタイル */
+.legend {
+    line-height: 18px;
+    color: #555;
+    background-color: white;
+    padding: 10;
+    border-radius: 10px;
+}
+.legend i {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+}
+</style>
+</head>
+<body>
+
+<div id="map" style="width:100%; height:100%"></div>
+
+<script>
+
+// 投票率のデータラベル
+var data_label = "投票率";
+
+// 投票率のデータ
+var data = [
+{"uri":"http://uedayou.net/loa/東京都千代田区","投票率":64.65},
+{"uri":"http://uedayou.net/loa/東京都中央区","投票率":63.47},
+{"uri":"http://uedayou.net/loa/東京都港区","投票率":57.38},
+{"uri":"http://uedayou.net/loa/東京都新宿区","投票率":57.84},
+{"uri":"http://uedayou.net/loa/東京都文京区","投票率":65.87},
+{"uri":"http://uedayou.net/loa/東京都台東区","投票率":61.07},
+{"uri":"http://uedayou.net/loa/東京都墨田区","投票率":59.32},
+{"uri":"http://uedayou.net/loa/東京都江東区","投票率":61.70},
+{"uri":"http://uedayou.net/loa/東京都品川区","投票率":60.05},
+{"uri":"http://uedayou.net/loa/東京都目黒区","投票率":59.84},
+{"uri":"http://uedayou.net/loa/東京都大田区","投票率":58.14},
+{"uri":"http://uedayou.net/loa/東京都世田谷区","投票率":61.38},
+{"uri":"http://uedayou.net/loa/東京都渋谷区","投票率":57.89},
+{"uri":"http://uedayou.net/loa/東京都中野区","投票率":58.14},
+{"uri":"http://uedayou.net/loa/東京都杉並区","投票率":60.87},
+{"uri":"http://uedayou.net/loa/東京都豊島区","投票率":59.77},
+{"uri":"http://uedayou.net/loa/東京都北区","投票率":61.59},
+{"uri":"http://uedayou.net/loa/東京都荒川区","投票率":59.69},
+{"uri":"http://uedayou.net/loa/東京都板橋区","投票率":58.78},
+{"uri":"http://uedayou.net/loa/東京都練馬区","投票率":61.14},
+{"uri":"http://uedayou.net/loa/東京都足立区","投票率":55.42},
+{"uri":"http://uedayou.net/loa/東京都葛飾区","投票率":57.12},
+{"uri":"http://uedayou.net/loa/東京都江戸川区","投票率":55.36},
+{"uri":"http://uedayou.net/loa/東京都八王子市","投票率":58.13},
+{"uri":"http://uedayou.net/loa/東京都立川市","投票率":57.93},
+{"uri":"http://uedayou.net/loa/東京都武蔵野市","投票率":64.56},
+{"uri":"http://uedayou.net/loa/東京都三鷹市","投票率":62.22},
+{"uri":"http://uedayou.net/loa/東京都青梅市","投票率":58.45},
+{"uri":"http://uedayou.net/loa/東京都府中市","投票率":60.15},
+{"uri":"http://uedayou.net/loa/東京都昭島市","投票率":58.18},
+{"uri":"http://uedayou.net/loa/東京都調布市","投票率":61.60},
+{"uri":"http://uedayou.net/loa/東京都町田市","投票率":60.68},
+{"uri":"http://uedayou.net/loa/東京都小金井市","投票率":62.21},
+{"uri":"http://uedayou.net/loa/東京都小平市","投票率":61.71},
+{"uri":"http://uedayou.net/loa/東京都日野市","投票率":61.32},
+{"uri":"http://uedayou.net/loa/東京都東村山市","投票率":60.79},
+{"uri":"http://uedayou.net/loa/東京都国分寺市","投票率":63.66},
+{"uri":"http://uedayou.net/loa/東京都国立市","投票率":63.93},
+{"uri":"http://uedayou.net/loa/東京都福生市","投票率":56.69},
+{"uri":"http://uedayou.net/loa/東京都狛江市","投票率":62.62},
+{"uri":"http://uedayou.net/loa/東京都東大和市","投票率":60.32},
+{"uri":"http://uedayou.net/loa/東京都清瀬市","投票率":61.65},
+{"uri":"http://uedayou.net/loa/東京都東久留米市","投票率":61.63},
+{"uri":"http://uedayou.net/loa/東京都武蔵村山市","投票率":54.00},
+{"uri":"http://uedayou.net/loa/東京都多摩市","投票率":63.23},
+{"uri":"http://uedayou.net/loa/東京都稲城市","投票率":62.77},
+{"uri":"http://uedayou.net/loa/東京都羽村市","投票率":57.29},
+{"uri":"http://uedayou.net/loa/東京都あきる野市","投票率":58.89},
+{"uri":"http://uedayou.net/loa/東京都西東京市","投票率":61.77},
+{"uri":"http://uedayou.net/loa/東京都西多摩郡瑞穂町","投票率":54.27},
+{"uri":"http://uedayou.net/loa/東京都西多摩郡日の出町","投票率":63.61},
+{"uri":"http://uedayou.net/loa/東京都西多摩郡檜原村","投票率":66.98},
+{"uri":"http://uedayou.net/loa/東京都西多摩郡奥多摩町","投票率":64.01},
+{"uri":"http://uedayou.net/loa/東京都大島町","投票率":68.36},
+{"uri":"http://uedayou.net/loa/東京都利島村","投票率":81.25},
+{"uri":"http://uedayou.net/loa/東京都新島村","投票率":69.16},
+{"uri":"http://uedayou.net/loa/東京都神津島村","投票率":64.13},
+{"uri":"http://uedayou.net/loa/東京都三宅村","投票率":64.25},
+{"uri":"http://uedayou.net/loa/東京都御蔵島村","投票率":82.38},
+{"uri":"http://uedayou.net/loa/東京都八丈町","投票率":63.53},
+{"uri":"http://uedayou.net/loa/東京都青ヶ島村","投票率":76.71},
+{"uri":"http://uedayou.net/loa/東京都小笠原村","投票率":67.86},
+];
+
+// 投票率データの階級区分
+var data_grades = [
+53, 
+55, 
+57, 
+59, 
+61, 
+63, 
+65, 
+70
+];
+
+
+// 投票率に応じて塗りつぶし色を変更
+function getColor(d) {
+	return d > data_grades[7]  ? '#800026' : // 70～
+	d > data_grades[6]  ? '#BD0026' : // 65～69
+	d > data_grades[5]  ? '#E31A1C' : // 63～64
+	d > data_grades[4]  ? '#FC4E2A' : // 61～62
+	d > data_grades[3]  ? '#FD8D3C' : // 59～60
+	d > data_grades[2]  ? '#FEB24C' : // 57～58
+	d > data_grades[1]  ? '#FED976' : // 55～56
+			  '#FFEDA0' ;　// 53～54
+}
+
+// 投票率の最小値を取得(使ってない)
+var min = d3.min(data, function (e) {
+    return e[data_label];
+});
+
+// 投票率の最大値を取得(使ってない)
+var max = d3.max(data, function (e) {
+    return e[data_label];
+});
+
+// Leafletによる地図表示
+var map = L.map('map').setView([35.709569368624195,139.40886352539062],11);
+var tiles = L.tileLayer('http://tile.openstreetmap.jp/{z}/{x}/{y}.png', {
+maxZoom: 18,
+attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+});
+map.addLayer(tiles);
+
+// 凡例
+var legend = L.control({position: 'bottomright'});
+legend.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'info legend'),
+        //grades = [53, 55, 57, 59, 61, 63, 65, 70],
+        grades = data_grades,
+        labels = [];
+    for (var i = 0; i < grades.length; i++) {
+        div.innerHTML +=
+            '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+            grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+    }
+    return div;
+};
+legend.addTo(map);
+
+console.log("start loading.");
+map.spin(true);
+$.each(data, function(i,d){
+	if (d.uri.lastIndexOf('http://uedayou.net/loa/', 0) !== 0) {
+		data[i].uri = 'http://uedayou.net/loa/'+d.uri;
+	}
+	loadPolygonFromLOAJ(d.uri, data[i]);
+});
+
+function loadPolygonFromLOAJ(uri, option) {
+	$.ajaxQueue({
+	    url: uri+".json"
+	}).done(function( json ) {
+		console.log(uri);
+		var json = json[uri];
+		if ("http://www.opengis.net/ont/geosparql#wktLiteral" in json) ; else return;
+		var label = json["http://www.w3.org/2000/01/rdf-schema#label"][0]["value"];
+		var wkt = json["http://www.opengis.net/ont/geosparql#wktLiteral"][0]["value"];
+		var _geoArray = new Array();
+		var _o = new Object();
+		_o["type"] = "Feature";
+		wicket = new Wkt.Wkt();
+		wicket.read(wkt);
+		var obj = wicket.toJson();
+		_o["geometry"] = obj;
+		_o["properties"] = {};
+		_o["properties"]["name"] = label;
+		_o["properties"][data_label] = option[data_label];
+		var importance = [];
+		if (obj.type == "MultiPolygon") {
+			var mx = 0;
+			$.each(obj.coordinates, function(i,_d){
+				var area = polygonArea(_d[0],_d[0].length);
+				if (mx<area) {
+					importance = _d[0];
+					mx = area;
+				}
+			});
+		}
+		else importance = obj.coordinates[0];
+		_o["internal"] = {"center":getCentroid2(importance)};
+		_geoArray[0] = _o;
+
+		// tooltip
+		var TooltipMarker = '';
+
+		// leaflet.D3SvgOverlay
+		// https://github.com/teralytics/Leaflet.D3SvgOverlay
+		var d3Layer = L.d3SvgOverlay(function(sel, proj) {
+			var upd = sel.selectAll('path').data(_geoArray);
+			upd.enter()
+		    .append('path')
+		    .attr('d', proj.pathFromGeojson)
+		    .attr('stroke', 'black')
+		    .attr('fill', function(){
+		    	//var color = d3.interpolate("khaki", "red");
+		    	//return color((option[data_label]-min)/(max-min))
+		    	
+		    	// 投票率に応じて塗りつぶし色を変更
+			    return getColor(option[data_label]);
+			})
+		    .attr('fill-opacity', '0.8');
+			upd.attr('stroke-width', 1 / proj.scale);
+			upd.on('mouseover', function(d) {
+          		var Lati = d.internal.center[1];
+          		var Longi = d.internal.center[0];
+
+          		if (!isFinite(Lati)||!isFinite(Longi)) return;
+
+		        var markerIcon = L.icon({
+		            iconUrl: 'Empty_Icon.png',
+		            iconSize: [38, 95],
+		            shadowSize: [50, 64],
+		            iconAnchor: [Lati, Longi],
+		        });
+
+		        TooltipMarker = new L.Marker([Lati, Longi], {
+		            icon: markerIcon
+		        });
+		        map.addLayer(TooltipMarker);
+
+				var out =[];
+				for(var key in d.properties){
+					out.push("<strong>"+key+"</strong>: "+d.properties[key]);
+				}
+		        TooltipMarker.bindPopup(out.join("<br/>"));
+		        TooltipMarker.openPopup();
+	        })
+			.on('mouseout', function(d) {
+				if (TooltipMarker != '') map.removeLayer(TooltipMarker);
+	        });
+		});
+		//
+
+		map.addLayer(d3Layer);
+		if (data[data.length-1].uri == uri) {
+			console.log("finished loading.");
+			map.spin(false);
+		}
+	});
+}
+
+// http://stackoverflow.com/questions/22796520/finding-the-center-of-leaflet-polygon
+var getCentroid2 = function (arr) {
+    var twoTimesSignedArea = 0;
+    var cxTimes6SignedArea = 0;
+    var cyTimes6SignedArea = 0;
+
+    var length = arr.length
+
+    var x = function (i) { return parseFloat(arr[i % length][0]) };
+    var y = function (i) { return parseFloat(arr[i % length][1]) };
+
+    for ( var i = 0; i < arr.length; i++) {
+        var twoSA = x(i)*y(i+1) - x(i+1)*y(i);
+        twoTimesSignedArea += twoSA;
+        cxTimes6SignedArea += (x(i) + x(i+1)) * twoSA;
+        cyTimes6SignedArea += (y(i) + y(i+1)) * twoSA;
+    }
+    var sixSignedArea = 3 * twoTimesSignedArea;
+    return [ cxTimes6SignedArea / sixSignedArea, cyTimes6SignedArea / sixSignedArea];        
+}
+
+function polygonArea(coord, numPoints) { 
+  area = 0;
+  j = numPoints-1;
+  for (i=0; i<numPoints; i++){
+  	area = area +  (coord[j][0]+coord[i][0]) * (coord[j][1]-coord[i][1]); 
+    j = i;
+  }
+  return area/2;
+}
+
+</script>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-45357765-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+</body>
+</html>
