@@ -144,7 +144,7 @@ var max = d3.max(data, function (e) {
 
 // Leafletによる地図表示
 var map = L.map('map').setView([35.709569368624195,139.40886352539062],11);
-var tiles = L.tileLayer('http://tile.openstreetmap.jp/{z}/{x}/{y}.png', {
+var tiles = L.tileLayer('https://tile.openstreetmap.jp/{z}/{x}/{y}.png', {
 maxZoom: 18,
 attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 });
