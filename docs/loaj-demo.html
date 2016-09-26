@@ -134,6 +134,7 @@ function loadPolygonFromLOAJ(uri, option) {
 		console.log(uri);
 		console.log(json);
 		var json = json[uri];
+		console.log(json);
 		if ("http://www.opengis.net/ont/geosparql#wktLiteral" in json) ; else return;
 		var label = json["http://www.w3.org/2000/01/rdf-schema#label"][0]["value"];
 		var wkt = json["http://www.opengis.net/ont/geosparql#wktLiteral"][0]["value"];
