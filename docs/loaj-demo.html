@@ -122,7 +122,8 @@ $.each(data, function(i,d){
 	if (d.uri.lastIndexOf('http://uedayou.net/loa/', 0) !== 0) {
 		d.uri = 'http://uedayou.net/loa/'+d.uri;
 	}
-	d.uri.replace("http://","https://");
+	d.uri.replace("http://","//");
+	console.log(d.uri);
 	loadPolygonFromLOAJ(d.uri);
 });
 
