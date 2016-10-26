@@ -3,13 +3,13 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>東京都知事選挙2016投票率</title>
-<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css" />
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 <script type="text/javascript" src="jquery-ajaxQueue/dist/jquery.ajaxQueue.min.js"></script>
 <script src='Wicket/wicket.js'></script>
-<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
-<script src="http://d3js.org/d3.v3.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
+<script src="https://d3js.org/d3.v3.js"></script>
 <script type="text/javascript" src="Leaflet.D3SvgOverlay/L.D3SvgOverlay.js"></script>
 <script src="spin.min.js"></script>
 <script src="Leaflet.Spin/leaflet.spin.js"></script>
@@ -115,21 +115,20 @@ var data_grades = [
 59, 
 61, 
 63, 
-65, 
-70
+65
 ];
 
 
 // 投票率に応じて塗りつぶし色を変更
 function getColor(d) {
-	return d > data_grades[7]  ? '#800026' : // 70～
-	d > data_grades[6]  ? '#BD0026' : // 65～69
-	d > data_grades[5]  ? '#E31A1C' : // 63～64
-	d > data_grades[4]  ? '#FC4E2A' : // 61～62
-	d > data_grades[3]  ? '#FD8D3C' : // 59～60
-	d > data_grades[2]  ? '#FEB24C' : // 57～58
-	d > data_grades[1]  ? '#FED976' : // 55～56
-			  '#FFEDA0' ;　// 53～54
+	return d > data_grades[6]  ? '#800026' :
+	d > data_grades[5]  ? '#BD0026' :
+	d > data_grades[4]  ? '#E31A1C' :
+	d > data_grades[3]  ? '#FC4E2A' :
+	d > data_grades[2]  ? '#FD8D3C' :
+	d > data_grades[1]  ? '#FEB24C' :
+	d > data_grades[0]  ? '#FED976' :
+			  '#FFEDA0' ;
 }
 
 // 投票率の最小値を取得(使ってない)
@@ -176,7 +175,7 @@ $.each(data, function(i,d){
 });
 
 function loadPolygonFromLOAJ(uri, option) {
-	var url = uri.replace(/^http:/i,window.location.protocol);
+	var url = window.location.protocol=="https:"?uri.replace(/^http:/i,"https:"):uri;
 	$.ajaxQueue({
 	    url: url+".json"
 	}).done(function( json ) {
