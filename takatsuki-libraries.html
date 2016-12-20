@@ -1,0 +1,808 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>大阪府高槻市の世帯数と図書館の分布</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css" />
+
+<style type="text/css">
+body {margin:0px;padding:0px;}
+/* 凡例のスタイル */
+.legend {
+    line-height: 18px;
+    color: #555;
+    background-color: white;
+    padding: 10;
+    border-radius: 10px;
+}
+.legend i {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+}
+</style>
+</head>
+<body>
+
+<div id="map" style="width:100%; height:100%"></div>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+
+<script type="text/javascript" src="jquery-ajaxQueue/dist/jquery.ajaxQueue.min.js"></script>
+<script src='Wicket/wicket.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
+<script src="https://d3js.org/d3.v3.js"></script>
+<script type="text/javascript" src="Leaflet.D3SvgOverlay/L.D3SvgOverlay.js"></script>
+<script src="spin.min.js"></script>
+<script src="Leaflet.Spin/leaflet.spin.js"></script>
+
+<script src="http://uedayou.net/SPARQLTimeliner/js_sparql/sparql.js"></script>
+
+<script>
+
+//
+// leaflet-simple-sparql
+//
+
+var endpoint = "https://uedayou.net/isillod/sparql";
+var query = (function () {/*
+PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+select distinct ?uri ?title ?isil_id ?lat ?long ?areauri ?region ?locality ?street ?postal where {
+?uri <http://dbpedia.org/ontology/originalName> ?title;
+<http://www.w3.org/ns/org#classification> ?class;
+<http://www.w3.org/ns/org#hasSite> ?hs.
+?hs <http://www.w3.org/ns/org#siteAddress> ?addr;
+<http://www.w3.org/2003/01/geo/wgs84_pos#long> ?long;
+<http://www.w3.org/2003/01/geo/wgs84_pos#lat> ?lat.
+?addr <http://schema.org/areaServed> ?areauri;
+<http://schema.org/addressRegion> ?region;
+<http://schema.org/addressLocality> ?locality;
+<http://schema.org/streetAddress> ?street;
+<http://schema.org/postalCode> ?postal.
+filter(xsd:float(?lat) > 34.743869417874286 && xsd:float(?long) > 135.54141998291016 && xsd:float(?lat) < 35.028590704930764 && xsd:float(?long) < 135.72921752929688)
+}
+*/}).toString().match(/\n([\s\S]*)\n/)[1];
+
+var labelColumn = "title";
+var labelLatitude = "lat";
+var labelLongitude = "long";
+
+
+//
+// loaviz
+//
+
+// GeoJSONを利用するかどうか
+var geojson_flag = false;
+var geojson_name = "takatsuki.json";
+
+// 投票率のデータラベル
+var data_label = "世帯数";
+
+// 投票率のデータ
+var data = (function () {/*uri	世帯数
+大阪府高槻市赤大路町	1305
+大阪府高槻市芥川町一丁目	684
+大阪府高槻市芥川町二丁目	746
+大阪府高槻市芥川町三丁目	409
+大阪府高槻市芥川町四丁目	470
+大阪府高槻市明田町	361
+大阪府高槻市明野町	1260
+大阪府高槻市朝日町	0
+大阪府高槻市阿武野一丁目	-1
+大阪府高槻市阿武野二丁目	29
+大阪府高槻市安満磐手町	38
+大阪府高槻市安満北の町	163
+大阪府高槻市安満御所の町	17
+大阪府高槻市安満新町	82
+大阪府高槻市安満中の町	254
+大阪府高槻市安満西の町	605
+大阪府高槻市安満東の町	216
+大阪府高槻市天川新町	393
+大阪府高槻市天川町	783
+大阪府高槻市安岡寺町一丁目	753
+大阪府高槻市安岡寺町二丁目	558
+大阪府高槻市安岡寺町三丁目	509
+大阪府高槻市安岡寺町四丁目	778
+大阪府高槻市安岡寺町五丁目	928
+大阪府高槻市安岡寺町六丁目	67
+大阪府高槻市井尻一丁目	59
+大阪府高槻市井尻二丁目	97
+大阪府高槻市出灰	28
+大阪府高槻市今城町	761
+大阪府高槻市美しが丘一丁目	380
+大阪府高槻市美しが丘二丁目	206
+大阪府高槻市浦堂一丁目	127
+大阪府高槻市浦堂二丁目	150
+大阪府高槻市浦堂三丁目	300
+大阪府高槻市浦堂本町	482
+大阪府高槻市永楽町	457
+大阪府高槻市大冠町一丁目	235
+大阪府高槻市大冠町二丁目	247
+大阪府高槻市大冠町三丁目	577
+大阪府高槻市大塚町一丁目	574
+大阪府高槻市大塚町二丁目	977
+大阪府高槻市大塚町三丁目	974
+大阪府高槻市大塚町四丁目	242
+大阪府高槻市大塚町五丁目	403
+大阪府高槻市大手町	322
+大阪府高槻市大畑町	1194
+大阪府高槻市岡本町	715
+大阪府高槻市奥天神町一丁目	472
+大阪府高槻市奥天神町二丁目	450
+大阪府高槻市奥天神町三丁目	99
+大阪府高槻市梶原一丁目	130
+大阪府高槻市梶原二丁目	46
+大阪府高槻市梶原三丁目	88
+大阪府高槻市梶原四丁目	92
+大阪府高槻市梶原五丁目	48
+大阪府高槻市梶原六丁目	13
+大阪府高槻市梶原中村町	-1
+大阪府高槻市春日町	1229
+大阪府高槻市上田辺町	718
+大阪府高槻市上土室一丁目	1068
+大阪府高槻市上土室二丁目	392
+大阪府高槻市上土室三丁目	781
+大阪府高槻市上土室四丁目	344
+大阪府高槻市上土室五丁目	198
+大阪府高槻市上土室六丁目	558
+大阪府高槻市上本町	541
+大阪府高槻市唐崎	-1
+大阪府高槻市唐崎北一丁目	-1
+大阪府高槻市唐崎北二丁目	19
+大阪府高槻市唐崎北三丁目	24
+大阪府高槻市唐崎中一丁目	153
+大阪府高槻市唐崎中二丁目	161
+大阪府高槻市唐崎中三丁目	170
+大阪府高槻市唐崎中四丁目	266
+大阪府高槻市唐崎西一丁目	245
+大阪府高槻市唐崎西二丁目	257
+大阪府高槻市唐崎南一丁目	15
+大阪府高槻市唐崎南二丁目	-1
+大阪府高槻市唐崎南三丁目	38
+大阪府高槻市花林苑	638
+大阪府高槻市川久保	26
+大阪府高槻市川添一丁目	449
+大阪府高槻市川添二丁目	803
+大阪府高槻市川西町一丁目	1186
+大阪府高槻市川西町二丁目	622
+大阪府高槻市川西町三丁目	232
+大阪府高槻市上牧	0
+大阪府高槻市上牧山手町	-1
+大阪府高槻市上牧北駅前町	449
+大阪府高槻市上牧南駅前町	254
+大阪府高槻市上牧町一丁目	124
+大阪府高槻市上牧町二丁目	286
+大阪府高槻市上牧町三丁目	-1
+大阪府高槻市上牧町四丁目	0
+大阪府高槻市上牧町五丁目	0
+大阪府高槻市北大樋町	1259
+大阪府高槻市北昭和台町	556
+大阪府高槻市北園町	468
+大阪府高槻市北柳川町	513
+大阪府高槻市京口町	369
+大阪府高槻市郡家新町	1806
+大阪府高槻市郡家本町	573
+大阪府高槻市高西町	549
+大阪府高槻市神内	0
+大阪府高槻市神内一丁目	53
+大阪府高槻市神内二丁目	766
+大阪府高槻市黄金の里一丁目	218
+大阪府高槻市古曽部町一丁目	762
+大阪府高槻市古曽部町二丁目	1415
+大阪府高槻市古曽部町三丁目	454
+大阪府高槻市古曽部町四丁目	184
+大阪府高槻市古曽部町五丁目	116
+大阪府高槻市寿町一丁目	606
+大阪府高槻市寿町二丁目	1022
+大阪府高槻市寿町三丁目	862
+大阪府高槻市紺屋町	147
+大阪府高槻市五領町	223
+大阪府高槻市西面	0
+大阪府高槻市西面北一丁目	19
+大阪府高槻市西面北二丁目	26
+大阪府高槻市西面中一丁目	120
+大阪府高槻市西面中二丁目	223
+大阪府高槻市西面南一丁目	24
+大阪府高槻市西面南二丁目	-1
+大阪府高槻市西面南三丁目	0
+大阪府高槻市西面南四丁目	-1
+大阪府高槻市幸町	104
+大阪府高槻市栄町一丁目	745
+大阪府高槻市栄町二丁目	1160
+大阪府高槻市栄町三丁目	268
+大阪府高槻市栄町四丁目	723
+大阪府高槻市桜ケ丘北町	604
+大阪府高槻市桜ケ丘南町	493
+大阪府高槻市桜町	0
+大阪府高槻市沢良木町	935
+大阪府高槻市三箇牧一丁目	19
+大阪府高槻市三箇牧二丁目	3
+大阪府高槻市芝谷町	667
+大阪府高槻市芝生町一丁目	1380
+大阪府高槻市芝生町二丁目	2170
+大阪府高槻市芝生町三丁目	983
+大阪府高槻市芝生町四丁目	437
+大阪府高槻市清水台一丁目	373
+大阪府高槻市清水台二丁目	203
+大阪府高槻市下	0
+大阪府高槻市下田部町一丁目	844
+大阪府高槻市下田部町二丁目	274
+大阪府高槻市庄所町	971
+大阪府高槻市昭和台町一丁目	215
+大阪府高槻市昭和台町二丁目	386
+大阪府高槻市城西町	935
+大阪府高槻市城東町	337
+大阪府高槻市城内町	90
+大阪府高槻市城南町一丁目	792
+大阪府高槻市城南町二丁目	519
+大阪府高槻市城南町三丁目	511
+大阪府高槻市城南町四丁目	732
+大阪府高槻市城北町一丁目	399
+大阪府高槻市城北町二丁目	328
+大阪府高槻市須賀町	828
+大阪府高槻市杉生	19
+大阪府高槻市辻子一丁目	599
+大阪府高槻市辻子二丁目	421
+大阪府高槻市辻子三丁目	1014
+大阪府高槻市清福寺町	699
+大阪府高槻市高垣町	1466
+大阪府高槻市高槻町	387
+大阪府高槻市高見台	285
+大阪府高槻市竹の内町	1217
+大阪府高槻市田能	90
+大阪府高槻市玉川一丁目	314
+大阪府高槻市玉川二丁目	1223
+大阪府高槻市玉川三丁目	16
+大阪府高槻市玉川四丁目	55
+大阪府高槻市玉川新町	133
+大阪府高槻市大学町	0
+大阪府高槻市大蔵司一丁目	404
+大阪府高槻市大蔵司二丁目	722
+大阪府高槻市大蔵司三丁目	356
+大阪府高槻市大和一丁目	564
+大阪府高槻市大和二丁目	145
+大阪府高槻市千代田町	927
+大阪府高槻市塚原一丁目	997
+大阪府高槻市塚原二丁目	1046
+大阪府高槻市塚原三丁目	456
+大阪府高槻市塚原四丁目	472
+大阪府高槻市塚原五丁目	267
+大阪府高槻市塚原六丁目	387
+大阪府高槻市塚脇一丁目	538
+大阪府高槻市塚脇二丁目	25
+大阪府高槻市塚脇三丁目	-1
+大阪府高槻市塚脇四丁目	18
+大阪府高槻市塚脇五丁目	-1
+大阪府高槻市月見町	618
+大阪府高槻市堤町	152
+大阪府高槻市津之江北町	1097
+大阪府高槻市津之江町一丁目	2133
+大阪府高槻市津之江町二丁目	1312
+大阪府高槻市津之江町三丁目	1049
+大阪府高槻市寺谷町	914
+大阪府高槻市天神町一丁目	232
+大阪府高槻市天神町二丁目	783
+大阪府高槻市天王町	448
+大阪府高槻市出丸町	578
+大阪府高槻市桃園町	52
+大阪府高槻市東和町	628
+大阪府高槻市殿町	629
+大阪府高槻市登美の里町	403
+大阪府高槻市富田丘町	1497
+大阪府高槻市富田町一丁目	901
+大阪府高槻市富田町二丁目	453
+大阪府高槻市富田町三丁目	357
+大阪府高槻市富田町四丁目	371
+大阪府高槻市富田町五丁目	811
+大阪府高槻市富田町六丁目	484
+大阪府高槻市道鵜町一丁目	-1
+大阪府高槻市道鵜町二丁目	37
+大阪府高槻市道鵜町三丁目	-1
+大阪府高槻市道鵜町四丁目	78
+大阪府高槻市道鵜町五丁目	433
+大阪府高槻市道鵜町六丁目	-1
+大阪府高槻市土橋町	526
+大阪府高槻市中川町	536
+大阪府高槻市中畑	31
+大阪府高槻市奈佐原	74
+大阪府高槻市奈佐原一丁目	724
+大阪府高槻市奈佐原二丁目	1431
+大阪府高槻市奈佐原三丁目	-1
+大阪府高槻市奈佐原四丁目	491
+大阪府高槻市奈佐原元町	268
+大阪府高槻市成合	39
+大阪府高槻市成合北の町	79
+大阪府高槻市成合中の町	139
+大阪府高槻市成合西の町	12
+大阪府高槻市成合東の町	91
+大阪府高槻市成合南の町	-1
+大阪府高槻市南平台一丁目	619
+大阪府高槻市南平台二丁目	218
+大阪府高槻市南平台三丁目	575
+大阪府高槻市南平台四丁目	492
+大阪府高槻市南平台五丁目	1021
+大阪府高槻市西大樋町	-1
+大阪府高槻市西冠一丁目	503
+大阪府高槻市西冠二丁目	395
+大阪府高槻市西冠三丁目	758
+大阪府高槻市西之川原一丁目	117
+大阪府高槻市西之川原二丁目	161
+大阪府高槻市西真上一丁目	1014
+大阪府高槻市西真上二丁目	257
+大阪府高槻市西町	1336
+大阪府高槻市西五百住町	448
+大阪府高槻市如是町	1066
+大阪府高槻市二料	35
+大阪府高槻市野田一丁目	393
+大阪府高槻市野田二丁目	644
+大阪府高槻市野田三丁目	962
+大阪府高槻市野田四丁目	301
+大阪府高槻市野田東一丁目	0
+大阪府高槻市野田東二丁目	13
+大阪府高槻市登町	2973
+大阪府高槻市野見町	434
+大阪府高槻市萩谷	89
+大阪府高槻市萩谷月見台	129
+大阪府高槻市萩庄	0
+大阪府高槻市萩之庄一丁目	100
+大阪府高槻市萩之庄二丁目	80
+大阪府高槻市萩之庄三丁目	86
+大阪府高槻市萩之庄四丁目	20
+大阪府高槻市萩之庄五丁目	232
+大阪府高槻市白梅町	1037
+大阪府高槻市柱本	0
+大阪府高槻市柱本一丁目	75
+大阪府高槻市柱本二丁目	78
+大阪府高槻市柱本三丁目	112
+大阪府高槻市柱本四丁目	-1
+大阪府高槻市柱本五丁目	56
+大阪府高槻市柱本六丁目	509
+大阪府高槻市柱本七丁目	-1
+大阪府高槻市柱本新町	1784
+大阪府高槻市柱本南町	0
+大阪府高槻市八丁畷町	343
+大阪府高槻市八丁西町	408
+大阪府高槻市土室町	875
+大阪府高槻市原	633
+大阪府高槻市番田一丁目	35
+大阪府高槻市番田二丁目	-1
+大阪府高槻市東天川一丁目	123
+大阪府高槻市東天川二丁目	96
+大阪府高槻市東天川三丁目	339
+大阪府高槻市東天川四丁目	-1
+大阪府高槻市東天川五丁目	0
+大阪府高槻市東上牧一丁目	-1
+大阪府高槻市東上牧二丁目	519
+大阪府高槻市東上牧三丁目	390
+大阪府高槻市東城山町	317
+大阪府高槻市東五百住町一丁目	840
+大阪府高槻市東五百住町二丁目	763
+大阪府高槻市東五百住町三丁目	621
+大阪府高槻市氷室町一丁目	1062
+大阪府高槻市氷室町二丁目	1382
+大阪府高槻市氷室町三丁目	292
+大阪府高槻市氷室町四丁目	501
+大阪府高槻市氷室町五丁目	18
+大阪府高槻市氷室町六丁目	24
+大阪府高槻市日向町	603
+大阪府高槻市日吉台一番町	416
+大阪府高槻市日吉台二番町	397
+大阪府高槻市日吉台三番町	544
+大阪府高槻市日吉台四番町	430
+大阪府高槻市日吉台五番町	422
+大阪府高槻市日吉台六番町	779
+大阪府高槻市日吉台七番町	463
+大阪府高槻市深沢町一丁目	630
+大阪府高槻市深沢町二丁目	585
+大阪府高槻市深沢本町	559
+大阪府高槻市藤の里町	567
+大阪府高槻市別所新町	219
+大阪府高槻市別所中の町	768
+大阪府高槻市別所本町	1513
+大阪府高槻市紅茸町	-1
+大阪府高槻市本町	301
+大阪府高槻市前島一丁目	120
+大阪府高槻市前島二丁目	-1
+大阪府高槻市前島三丁目	0
+大阪府高槻市前島四丁目	-1
+大阪府高槻市前島五丁目	0
+大阪府高槻市真上町一丁目	931
+大阪府高槻市真上町二丁目	683
+大阪府高槻市真上町三丁目	377
+大阪府高槻市真上町四丁目	504
+大阪府高槻市真上町五丁目	792
+大阪府高槻市真上町六丁目	1395
+大阪府高槻市牧田町	3235
+大阪府高槻市松川町	382
+大阪府高槻市松が丘一丁目	643
+大阪府高槻市松が丘二丁目	727
+大阪府高槻市松が丘三丁目	691
+大阪府高槻市松が丘四丁目	480
+大阪府高槻市松原町	389
+大阪府高槻市三島江	10
+大阪府高槻市三島江一丁目	40
+大阪府高槻市三島江二丁目	133
+大阪府高槻市三島江三丁目	46
+大阪府高槻市三島江四丁目	173
+大阪府高槻市緑が丘一丁目	454
+大阪府高槻市緑が丘二丁目	486
+大阪府高槻市緑が丘三丁目	142
+大阪府高槻市緑町	504
+大阪府高槻市南芥川町	1023
+大阪府高槻市南大樋町	681
+大阪府高槻市南庄所町	386
+大阪府高槻市南総持寺町	847
+大阪府高槻市南松原町	469
+大阪府高槻市宮が谷町	140
+大阪府高槻市宮田町一丁目	698
+大阪府高槻市宮田町二丁目	952
+大阪府高槻市宮田町三丁目	720
+大阪府高槻市宮之川原一丁目	122
+大阪府高槻市宮之川原二丁目	149
+大阪府高槻市宮之川原三丁目	283
+大阪府高槻市宮之川原四丁目	367
+大阪府高槻市宮之川原五丁目	452
+大阪府高槻市宮之川原元町	265
+大阪府高槻市宮野町	1546
+大阪府高槻市紫町	275
+大阪府高槻市名神町	333
+大阪府高槻市柳川町一丁目	303
+大阪府高槻市柳川町二丁目	410
+大阪府高槻市八幡町	725
+大阪府高槻市山手町一丁目	325
+大阪府高槻市山手町二丁目	68
+大阪府高槻市弥生が丘町	1021
+大阪府高槻市淀の原町	1592
+大阪府高槻市霊仙寺町一丁目	23
+大阪府高槻市霊仙寺町二丁目	0
+大阪府高槻市若松町	570
+*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
+
+var data = d3.tsv.parse(data);
+
+// 投票率データの階級区分
+var data_grades = [ 
+0,
+500, 
+1000, 
+1500,
+2000,
+2500,
+3000
+];
+
+
+// 投票率に応じて塗りつぶし色を変更
+function getColor(d) {
+	return d > data_grades[6]  ? '#800026' :
+	d > data_grades[5]  ? '#BD0026' :
+	d > data_grades[4]  ? '#E31A1C' :
+	d > data_grades[3]  ? '#FC4E2A' :
+	d > data_grades[2]  ? '#FD8D3C' :
+	d > data_grades[1]  ? '#FEB24C' :
+	d > data_grades[0]  ? '#FED976' :
+			  '#FFEDA0' ;
+}
+
+// 投票率の最小値を取得(使ってない)
+var min = d3.min(data, function (e) {
+    return e[data_label];
+});
+
+// 投票率の最大値を取得(使ってない)
+var max = d3.max(data, function (e) {
+    return e[data_label];
+});
+
+// Leafletによる地図表示
+var map = L.map('map').setView([34.849511,135.623521],13);
+var tiles = L.tileLayer('http://tile.openstreetmap.jp/{z}/{x}/{y}.png', {
+maxZoom: 18,
+attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors | <a href="http://uedayou.net/loa/">住所LOD</a>, <a href="http://www.ndl.go.jp/jp/aboutus/standards/opendataset.html#ISIL_trial">ISIL-LOD</a>'
+});
+map.addLayer(tiles);
+
+// 凡例
+var legend = L.control({position: 'bottomright'});
+legend.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'info legend'),
+        //grades = [53, 55, 57, 59, 61, 63, 65, 70],
+        grades = data_grades,
+        labels = [];
+    for (var i = 0; i < grades.length; i++) {
+        div.innerHTML +=
+            '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+            grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+    }
+    return div;
+};
+legend.addTo(map);
+
+console.log("start loading.");
+map.spin(true);
+$.each(data, function(i,d){
+	if (d.uri.lastIndexOf('http://uedayou.net/loa/', 0) !== 0) {
+		d.uri = 'http://uedayou.net/loa/'+d.uri;
+	}
+	if(!geojson_flag){loadPolygonFromLOAJ(d.uri, data[i]);}
+});
+if(geojson_flag){loadPolygonFromGeoJson(data);}
+
+//
+// leaflet-simple-sparql
+//
+qr = sendQuery(endpoint, query);
+qr.fail(
+    function (xhr, textStatus, thrownError) {
+        alert("Error: A '" + textStatus+ "' occurred.");
+    }
+);
+qr.done(
+    function (json) {
+        var dataJson = [];
+        for(var i=0;i<json.results.bindings.length;i++) {
+            dataJson.push(_convSparqlJsonToGeoJson(json.results.bindings[i]));
+        }
+        L.geoJson(dataJson, {
+//            pointToLayer: function(feature, latlng) {
+//                var smallIcon = new L.Icon({
+//                    iconSize: [32, 37],
+//                    iconAnchor: [16, 37],
+//                    popupAnchor:  [1, -34],
+//                    iconUrl: 'library.png'
+//                });
+//                return L.marker(latlng, {icon: smallIcon});
+//            },
+            onEachFeature: function (feature, layer) {
+                if ("title" in feature.properties) { layer.bindPopup(feature.properties["title"]);}
+        }}).addTo(map);
+    }
+);
+
+// leaflet-simple-sparql
+_convSparqlJsonToGeoJson = function(data) {
+    var json = {};
+    json["type"] = "Feature";
+    json["properties"] = _getProperties(data);
+    json["geometry"] = {"type" :"Point"};
+    json["geometry"]["coordinates"] = [data[labelLongitude].value, data[labelLatitude].value];
+    return json;
+}
+
+// leaflet-simple-sparql
+_getProperties = function(data) {
+    var props = {};
+    $.each(data, function(key, value) {
+        props[key] = value.value;
+    });
+    return props;
+}
+
+// loaviz geojson
+function loadPolygonFromGeoJson(data) {
+    $.ajax({
+        type: 'GET',
+        url: geojson_name,
+        dataType: 'json',
+        success: function(json){
+            $.each(json.features, function(key, value) {
+                var match = $.grep(data, function(v, i){ return v.uri == value.properties.uri; });
+                value.properties[data_label] = match.length>0?match[0][data_label]:-1; 
+                var importance = [];
+                if (value.geometry.type == "MultiPolygon") {
+                    var mx = 0;
+                    $.each(value.geometry.coordinates, function(i,_d){
+                        var area = polygonArea(_d[0],_d[0].length);
+                        if (mx<area) {
+                            importance = _d[0];
+                            mx = area;
+                        }
+                    });
+                } else { importance = value.geometry.coordinates[0]; }
+                value["internal"] = {"center":getCentroid2(importance)};
+            });
+            // tooltip
+            var TooltipMarker = '';
+
+            // leaflet.D3SvgOverlay
+            // https://github.com/teralytics/Leaflet.D3SvgOverlay
+            var d3Layer = L.d3SvgOverlay(function(sel, proj) {
+                var upd = sel.selectAll('path').data(json.features);
+                upd.enter()
+                .append('path')
+                .attr('d', proj.pathFromGeojson)
+                .attr('stroke', 'black')
+                .attr('fill', function(d){
+                    // 投票率に応じて塗りつぶし色を変更
+                    console.log(d.properties);
+                    return getColor(d.properties[data_label]);
+                })
+                .attr('fill-opacity', '0.8');
+                upd.attr('stroke-width', 1 / proj.scale);
+                upd.on('mouseover', function(d) {
+                    var Lati = d.internal.center[1];
+                    var Longi = d.internal.center[0];
+
+                    if (!isFinite(Lati)||!isFinite(Longi)) return;
+
+                    var markerIcon = L.icon({
+                        iconUrl: 'Empty_Icon.png',
+                        iconSize: [38, 95],
+                        shadowSize: [50, 64],
+                        iconAnchor: [Lati, Longi],
+                    });
+
+                    TooltipMarker = new L.Marker([Lati, Longi], {
+                        icon: markerIcon
+                    });
+                    map.addLayer(TooltipMarker);
+
+                    var out =[];
+                    for(var key in d.properties){
+                        if (key!="uri") {
+                            //out.push("<strong>"+key+"</strong>: "+d.properties[key]);
+                            var val = d.properties[key]==-1?"値なし":d.properties[key];
+                            out.push("<strong>"+key+"</strong>: "+val);
+                        }
+                    }
+                    TooltipMarker.bindPopup(out.join("<br/>"));
+                    TooltipMarker.openPopup();
+                })
+                .on('mouseout', function(d) {
+                    if (TooltipMarker != '') map.removeLayer(TooltipMarker);
+                });
+            });
+            //
+
+            map.addLayer(d3Layer);
+            console.log("finished loading.");
+            map.spin(false);
+        }
+    });
+}
+
+// loaviz direct
+function loadPolygonFromLOAJ(uri, option) {
+	var url = window.location.protocol=="https:"?uri.replace(/^http:/i,"https:"):uri;
+	$.ajaxQueue({
+	    url: url+".json"
+	}).done(function( json ) {
+		//console.log(uri);
+		var json = json[uri];
+		if ("http://www.opengis.net/ont/geosparql#wktLiteral" in json) ; else return;
+		var label = json["http://www.w3.org/2000/01/rdf-schema#label"][0]["value"];
+		var wkt = json["http://www.opengis.net/ont/geosparql#wktLiteral"][0]["value"];
+		var _geoArray = new Array();
+		var _o = new Object();
+		_o["type"] = "Feature";
+		wicket = new Wkt.Wkt();
+		wicket.read(wkt);
+		var obj = wicket.toJson();
+		_o["geometry"] = obj;
+		_o["properties"] = {};
+		_o["properties"]["name"] = label;
+		_o["properties"][data_label] = option[data_label];
+		var importance = [];
+		if (obj.type == "MultiPolygon") {
+			var mx = 0;
+			$.each(obj.coordinates, function(i,_d){
+				var area = polygonArea(_d[0],_d[0].length);
+				if (mx<area) {
+					importance = _d[0];
+					mx = area;
+				}
+			});
+		}
+		else importance = obj.coordinates[0];
+		_o["internal"] = {"center":getCentroid2(importance)};
+		_geoArray[0] = _o;
+
+		// tooltip
+		var TooltipMarker = '';
+
+		// leaflet.D3SvgOverlay
+		// https://github.com/teralytics/Leaflet.D3SvgOverlay
+		var d3Layer = L.d3SvgOverlay(function(sel, proj) {
+			var upd = sel.selectAll('path').data(_geoArray);
+			upd.enter()
+		    .append('path')
+		    .attr('d', proj.pathFromGeojson)
+		    .attr('stroke', 'black')
+		    .attr('fill', function(){
+		    	//var color = d3.interpolate("khaki", "red");
+		    	//return color((option[data_label]-min)/(max-min))
+		    	
+		    	// 投票率に応じて塗りつぶし色を変更
+			    return getColor(option[data_label]);
+			})
+		    .attr('fill-opacity', '0.8');
+			upd.attr('stroke-width', 1 / proj.scale);
+			upd.on('mouseover', function(d) {
+          		var Lati = d.internal.center[1];
+          		var Longi = d.internal.center[0];
+
+          		if (!isFinite(Lati)||!isFinite(Longi)) return;
+
+		        var markerIcon = L.icon({
+		            iconUrl: 'Empty_Icon.png',
+		            iconSize: [38, 95],
+		            shadowSize: [50, 64],
+		            iconAnchor: [Lati, Longi],
+		        });
+
+		        TooltipMarker = new L.Marker([Lati, Longi], {
+		            icon: markerIcon
+		        });
+		        map.addLayer(TooltipMarker);
+
+				var out =[];
+				for(var key in d.properties){
+					out.push("<strong>"+key+"</strong>: "+d.properties[key]);
+				}
+		        TooltipMarker.bindPopup(out.join("<br/>"));
+		        TooltipMarker.openPopup();
+	        })
+			.on('mouseout', function(d) {
+				if (TooltipMarker != '') map.removeLayer(TooltipMarker);
+	        });
+		});
+		//
+
+		map.addLayer(d3Layer);
+		if (data[data.length-1].uri == uri) {
+			console.log("finished loading.");
+			map.spin(false);
+		}
+	});
+}
+
+// http://stackoverflow.com/questions/22796520/finding-the-center-of-leaflet-polygon
+var getCentroid2 = function (arr) {
+    var twoTimesSignedArea = 0;
+    var cxTimes6SignedArea = 0;
+    var cyTimes6SignedArea = 0;
+
+    var length = arr.length
+
+    var x = function (i) { return parseFloat(arr[i % length][0]) };
+    var y = function (i) { return parseFloat(arr[i % length][1]) };
+
+    for ( var i = 0; i < arr.length; i++) {
+        var twoSA = x(i)*y(i+1) - x(i+1)*y(i);
+        twoTimesSignedArea += twoSA;
+        cxTimes6SignedArea += (x(i) + x(i+1)) * twoSA;
+        cyTimes6SignedArea += (y(i) + y(i+1)) * twoSA;
+    }
+    var sixSignedArea = 3 * twoTimesSignedArea;
+    return [ cxTimes6SignedArea / sixSignedArea, cyTimes6SignedArea / sixSignedArea];        
+}
+
+function polygonArea(coord, numPoints) { 
+  area = 0;
+  j = numPoints-1;
+  for (i=0; i<numPoints; i++){
+  	area = area +  (coord[j][0]+coord[i][0]) * (coord[j][1]-coord[i][1]); 
+    j = i;
+  }
+  return area/2;
+}
+
+</script>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-45357765-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+</body>
+</html>
