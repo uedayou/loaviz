@@ -61,7 +61,7 @@
     "devDependencies": {
         "chai": "*",
         "mocha": "*",
-        "uglify-js": "2.4.x",
+        "uglify-js": "3.7.x",
         "jasmine": "git://github.com/pivotal/jasmine#master",
         "leaflet-providers": "git://github.com/leaflet-extras/leaflet-providers#master"
     }
