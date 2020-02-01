@@ -1,0 +1,767 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>東京都知事選挙2016投票率</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css" />
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-dvf/0.2.6/css/dvf.min.css">
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script type="text/javascript" src="jquery-ajaxQueue/dist/jquery.ajaxQueue.min.js"></script>
+<script src='Wicket/wicket.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-dvf/0.2.6/leaflet-dvf.markers.js"></script>
+
+<script src="https://d3js.org/d3.v3.js"></script>
+<script type="text/javascript" src="Leaflet.D3SvgOverlay/L.D3SvgOverlay.js"></script>
+<script src="spin.min.js"></script>
+<script src="Leaflet.Spin/leaflet.spin.js"></script>
+
+
+<style type="text/css">
+body {margin:0px;padding:0px;}
+/* 凡例のスタイル */
+.legend {
+    line-height: 18px;
+    color: #555;
+    background-color: white;
+    padding: 10;
+    border-radius: 10px;
+}
+.legend i {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+}
+</style>
+</head>
+<body>
+
+<div id="map" style="width:100%; height:100%"></div>
+
+<script>
+
+// 投票率のデータラベル
+var data_label = "投票率";
+
+// 投票率のデータ
+var data = [{
+  "uri": "http://uedayou.net/loa/東京都千代田区",
+  "鳥越": "4928.00 ",
+  "増田": "8200.00 ",
+  "小池": "14731.00 ",
+  "計": "30420.00 ",
+  "投票率": "64.65 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都中央区",
+  "鳥越": "11219.00 ",
+  "増田": "19109.00 ",
+  "小池": "37675.00 ",
+  "計": "74320.00 ",
+  "投票率": "63.47 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都港区",
+  "鳥越": "18587.00 ",
+  "増田": "28526.00 ",
+  "小池": "53860.00 ",
+  "計": "109653.00 ",
+  "投票率": "57.38 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都新宿区",
+  "鳥越": "29614.00 ",
+  "増田": "38848.00 ",
+  "小池": "68912.00 ",
+  "計": "150391.00 ",
+  "投票率": "57.84 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都文京区",
+  "鳥越": "23354.00 ",
+  "増田": "28997.00 ",
+  "小池": "52193.00 ",
+  "計": "113765.00 ",
+  "投票率": "65.87 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都台東区",
+  "鳥越": "18245.00 ",
+  "増田": "24480.00 ",
+  "小池": "43852.00 ",
+  "計": "94793.00 ",
+  "投票率": "61.07 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都墨田区",
+  "鳥越": "22100.00 ",
+  "増田": "35765.00 ",
+  "小池": "59987.00 ",
+  "計": "128119.00 ",
+  "投票率": "59.32 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都江東区",
+  "鳥越": "44678.00 ",
+  "増田": "68609.00 ",
+  "小池": "113926.00 ",
+  "計": "246191.00 ",
+  "投票率": "61.70 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都品川区",
+  "鳥越": "35498.00 ",
+  "増田": "50475.00 ",
+  "小池": "87115.00 ",
+  "計": "188694.00 ",
+  "投票率": "60.05 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都目黒区",
+  "鳥越": "26989.00 ",
+  "増田": "35553.00 ",
+  "小池": "61766.00 ",
+  "計": "135425.00 ",
+  "投票率": "59.84 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都大田区",
+  "鳥越": "66010.00 ",
+  "増田": "97580.00 ",
+  "小池": "152594.00 ",
+  "計": "342537.00 ",
+  "投票率": "58.14 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都世田谷区",
+  "鳥越": "94304.00 ",
+  "増田": "118394.00 ",
+  "小池": "200438.00 ",
+  "計": "450554.00 ",
+  "投票率": "61.38 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都渋谷区",
+  "鳥越": "21983.00 ",
+  "増田": "26139.00 ",
+  "小池": "48954.00 ",
+  "計": "106506.00 ",
+  "投票率": "57.89 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都中野区",
+  "鳥越": "33878.00 ",
+  "増田": "40664.00 ",
+  "小池": "69090.00 ",
+  "計": "157614.00 ",
+  "投票率": "58.14 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都杉並区",
+  "鳥越": "63298.00 ",
+  "増田": "73182.00 ",
+  "小池": "122484.00 ",
+  "計": "284054.00 ",
+  "投票率": "60.87 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都豊島区",
+  "鳥越": "24819.00 ",
+  "増田": "28116.00 ",
+  "小池": "71194.00 ",
+  "計": "134369.00 ",
+  "投票率": "59.77 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都北区",
+  "鳥越": "37507.00 ",
+  "増田": "46961.00 ",
+  "小池": "74722.00 ",
+  "計": "172131.00 ",
+  "投票率": "61.59 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都荒川区",
+  "鳥越": "18668.00 ",
+  "増田": "27341.00 ",
+  "小池": "44480.00 ",
+  "計": "97823.00 ",
+  "投票率": "59.69 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都板橋区",
+  "鳥越": "54427.00 ",
+  "増田": "72153.00 ",
+  "小池": "119106.00 ",
+  "計": "266002.00 ",
+  "投票率": "58.78 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都練馬区",
+  "鳥越": "72706.00 ",
+  "増田": "90505.00 ",
+  "小池": "171226.00 ",
+  "計": "360652.00 ",
+  "投票率": "61.14 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都足立区",
+  "鳥越": "57456.00 ",
+  "増田": "87863.00 ",
+  "小池": "137460.00 ",
+  "計": "303591.00 ",
+  "投票率": "55.42 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都葛飾区",
+  "鳥越": "39357.00 ",
+  "増田": "61001.00 ",
+  "小池": "94019.00 ",
+  "計": "209737.00 ",
+  "投票率": "57.12 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都江戸川区",
+  "鳥越": "50888.00 ",
+  "増田": "89454.00 ",
+  "小池": "137502.00 ",
+  "計": "299998.00 ",
+  "投票率": "55.36 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都八王子市",
+  "鳥越": "60291.00 ",
+  "増田": "80671.00 ",
+  "小池": "110481.00 ",
+  "計": "268175.00 ",
+  "投票率": "58.13 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都立川市",
+  "鳥越": "18540.00 ",
+  "増田": "25742.00 ",
+  "小池": "35520.00 ",
+  "計": "85562.00 ",
+  "投票率": "57.93 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都武蔵野市",
+  "鳥越": "18053.00 ",
+  "増田": "19710.00 ",
+  "小池": "32704.00 ",
+  "計": "76300.00 ",
+  "投票率": "64.56 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都三鷹市",
+  "鳥越": "22241.00 ",
+  "増田": "24698.00 ",
+  "小池": "39638.00 ",
+  "計": "93967.00 ",
+  "投票率": "62.22 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都青梅市",
+  "鳥越": "13639.00 ",
+  "増田": "19685.00 ",
+  "小池": "28851.00 ",
+  "計": "66322.00 ",
+  "投票率": "58.45 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都府中市",
+  "鳥越": "27002.00 ",
+  "増田": "35747.00 ",
+  "小池": "53120.00 ",
+  "計": "125055.00 ",
+  "投票率": "60.15 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都昭島市",
+  "鳥越": "11497.00 ",
+  "増田": "16189.00 ",
+  "小池": "22522.00 ",
+  "計": "53670.00 ",
+  "投票率": "58.18 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都調布市",
+  "鳥越": "24976.00 ",
+  "増田": "30748.00 ",
+  "小池": "50028.00 ",
+  "計": "114887.00 ",
+  "投票率": "61.60 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都町田市",
+  "鳥越": "47154.00 ",
+  "増田": "59283.00 ",
+  "小池": "90993.00 ",
+  "計": "211071.00 ",
+  "投票率": "60.68 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都小金井市",
+  "鳥越": "15090.00 ",
+  "増田": "16200.00 ",
+  "小池": "25106.00 ",
+  "計": "60759.00 ",
+  "投票率": "62.21 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都小平市",
+  "鳥越": "21758.00 ",
+  "増田": "27401.00 ",
+  "小池": "38274.00 ",
+  "計": "94163.00 ",
+  "投票率": "61.71 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都日野市",
+  "鳥越": "21613.00 ",
+  "増田": "25756.00 ",
+  "小池": "37623.00 ",
+  "計": "91431.00 ",
+  "投票率": "61.32 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都東村山市",
+  "鳥越": "18061.00 ",
+  "増田": "21681.00 ",
+  "小池": "30445.00 ",
+  "計": "75289.00 ",
+  "投票率": "60.79 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都国分寺市",
+  "鳥越": "14965.00 ",
+  "増田": "17656.00 ",
+  "小池": "25784.00 ",
+  "計": "63138.00 ",
+  "投票率": "63.66 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都国立市",
+  "鳥越": "10219.00 ",
+  "増田": "10835.00 ",
+  "小池": "15690.00 ",
+  "計": "39632.00 ",
+  "投票率": "63.93 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都福生市",
+  "鳥越": "5240.00 ",
+  "増田": "8134.00 ",
+  "小池": "11505.00 ",
+  "計": "26761.00 ",
+  "投票率": "56.69 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都狛江市",
+  "鳥越": "9487.00 ",
+  "増田": "11555.00 ",
+  "小池": "17806.00 ",
+  "計": "41999.00 ",
+  "投票率": "62.62 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都東大和市",
+  "鳥越": "9733.00 ",
+  "増田": "12472.00 ",
+  "小池": "17498.00 ",
+  "計": "42264.00 ",
+  "投票率": "60.32 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都清瀬市",
+  "鳥越": "10063.00 ",
+  "増田": "10232.00 ",
+  "小池": "15005.00 ",
+  "計": "37600.00 ",
+  "投票率": "61.65 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都東久留米市",
+  "鳥越": "14855.00 ",
+  "増田": "17008.00 ",
+  "小池": "23800.00 ",
+  "計": "59282.00 ",
+  "投票率": "61.63 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都武蔵村山市",
+  "鳥越": "6577.00 ",
+  "増田": "9918.00 ",
+  "小池": "12824.00 ",
+  "計": "31115.00 ",
+  "投票率": "54.00 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都多摩市",
+  "鳥越": "19520.00 ",
+  "増田": "20553.00 ",
+  "小池": "32439.00 ",
+  "計": "77829.00 ",
+  "投票率": "63.23 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都稲城市",
+  "鳥越": "9038.00 ",
+  "増田": "12239.00 ",
+  "小池": "19552.00 ",
+  "計": "43869.00 ",
+  "投票率": "62.77 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都羽村市",
+  "鳥越": "5278.00 ",
+  "増田": "7791.00 ",
+  "小池": "11367.00 ",
+  "計": "26097.00 ",
+  "投票率": "57.29 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都あきる野市",
+  "鳥越": "8605.00 ",
+  "増田": "11963.00 ",
+  "小池": "16453.00 ",
+  "計": "39143.00 ",
+  "投票率": "58.89 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都西東京市",
+  "鳥越": "23662.00 ",
+  "増田": "27293.00 ",
+  "小池": "42714.00 ",
+  "計": "100842.00 ",
+  "投票率": "61.77 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都西多摩郡瑞穂町",
+  "鳥越": "2596.00 ",
+  "増田": "4784.00 ",
+  "小池": "6798.00 ",
+  "計": "14993.00 ",
+  "投票率": "54.27 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都西多摩郡日の出町",
+  "鳥越": "1897.00 ",
+  "増田": "2876.00 ",
+  "小池": "3649.00 ",
+  "計": "8865.00 ",
+  "投票率": "63.61 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都西多摩郡檜原村",
+  "鳥越": "236.00 ",
+  "増田": "569.00 ",
+  "小池": "523.00 ",
+  "計": "1397.00 ",
+  "投票率": "66.98 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都西多摩郡奥多摩町",
+  "鳥越": "578.00 ",
+  "増田": "1050.00 ",
+  "小池": "1278.00 ",
+  "計": "3083.00 ",
+  "投票率": "64.01 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都大島町",
+  "鳥越": "1147.00 ",
+  "増田": "1658.00 ",
+  "小池": "1415.00 ",
+  "計": "4474.00 ",
+  "投票率": "68.36 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都利島村",
+  "鳥越": "29.00 ",
+  "増田": "102.00 ",
+  "小池": "59.00 ",
+  "計": "203.00 ",
+  "投票率": "81.25 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都新島村",
+  "鳥越": "316.00 ",
+  "増田": "656.00 ",
+  "小池": "609.00 ",
+  "計": "1651.00 ",
+  "投票率": "69.16 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都神津島村",
+  "鳥越": "167.00 ",
+  "増田": "379.00 ",
+  "小池": "359.00 ",
+  "計": "973.00 ",
+  "投票率": "64.13 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都三宅村",
+  "鳥越": "300.00 ",
+  "増田": "563.00 ",
+  "小池": "523.00 ",
+  "計": "1459.00 ",
+  "投票率": "64.25 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都御蔵島村",
+  "鳥越": "48.00 ",
+  "増田": "63.00 ",
+  "小池": "59.00 ",
+  "計": "195.00 ",
+  "投票率": "82.38 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都八丈町",
+  "鳥越": "817.00 ",
+  "増田": "1292.00 ",
+  "小池": "1803.00 ",
+  "計": "4122.00 ",
+  "投票率": "63.53 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都青ケ島村",
+  "鳥越": "20.00 ",
+  "増田": "37.00 ",
+  "小池": "44.00 ",
+  "計": "111.00 ",
+  "投票率": "76.71 "
+}, {
+  "uri": "http://uedayou.net/loa/東京都小笠原村",
+  "鳥越": "282.00 ",
+  "増田": "349.00 ",
+  "小池": "481.00 ",
+  "計": "1275.00 ",
+  "投票率": "67.86 "
+}];
+
+// 投票率データの階級区分
+var data_grades = [
+53, 
+55, 
+57, 
+59, 
+61, 
+63, 
+65
+];
+
+var piecharts = [];
+
+// 投票率に応じて塗りつぶし色を変更
+function getColor(d) {
+  return d > data_grades[6]  ? '#800026' :
+  d > data_grades[5]  ? '#BD0026' :
+  d > data_grades[4]  ? '#E31A1C' :
+  d > data_grades[3]  ? '#FC4E2A' :
+  d > data_grades[2]  ? '#FD8D3C' :
+  d > data_grades[1]  ? '#FEB24C' :
+  d > data_grades[0]  ? '#FED976' :
+        '#FFEDA0' ;
+}
+
+// Leafletによる地図表示
+var map = L.map('map').setView([35.709569368624195,139.40886352539062],11);
+var tiles = L.tileLayer('http://tile.openstreetmap.jp/{z}/{x}/{y}.png', {
+maxZoom: 18,
+attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors | <a href="http://uedayou.net/loa/">住所LOD</a>'
+});
+map.addLayer(tiles);
+
+// 地図の凡例
+var legend = L.control({position: 'bottomright'});
+legend.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'info legend'),
+        //grades = [53, 55, 57, 59, 61, 63, 65, 70],
+        grades = data_grades,
+        labels = [];
+    for (var i = 0; i < grades.length; i++) {
+        div.innerHTML +=
+            '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+            grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+    }
+    return div;
+};
+legend.addTo(map);
+
+// グラフの凡例
+var legendtop = L.control({position: 'topright'});
+legendtop.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'info legend');
+  div.innerHTML +='<i style="background:green"></i>小池候補<br>';
+  div.innerHTML +='<i style="background:blue"></i>増田候補<br>';
+  div.innerHTML +='<i style="background:yellow"></i>鳥越候補<br>';
+  // div.innerHTML +='<i style="background:gray"></i>○○候補<br>';
+    return div;
+};
+legendtop.addTo(map);
+
+
+
+console.log("start loading.");
+map.spin(true);
+
+var req = [];
+$.each(data, function(i,d){
+  if (d.uri.lastIndexOf('http://uedayou.net/loa/', 0) !== 0) {
+    data[i].uri = 'http://uedayou.net/loa/'+d.uri;
+  }
+  req.push(loadPolygonFromLOAJ(d.uri,d));
+});
+
+$.when.apply($, req ).done(function(data) {
+  $.each(piecharts,function(k,v){map.addLayer(v)});
+  console.log("finished loading.");
+  map.spin(false);
+});
+
+function loadPolygonFromLOAJ(uri, option) {
+  var url = window.location.protocol=="https:"?uri.replace(/^http:/i,"https:"):uri;
+  return $.ajax({
+      url: url+".json"
+  }).done(function( json ) {
+    console.log(uri);
+    var json = json[uri];
+    if ("http://www.opengis.net/ont/geosparql#asWKT" in json) ; else return;
+    var label = json["http://www.w3.org/2000/01/rdf-schema#label"][0]["value"];
+    var wkt = json["http://www.opengis.net/ont/geosparql#asWKT"][0]["value"];
+    var _geoArray = new Array();
+    var _o = new Object();
+    _o["type"] = "Feature";
+    wicket = new Wkt.Wkt();
+    wicket.read(wkt);
+    var obj = wicket.toJson();
+    _o["geometry"] = obj;
+    _o["properties"] = {};
+    _o["properties"]["name"] = label;
+    _o["properties"][data_label] = option[data_label];
+    var importance = [];
+    if (obj.type == "MultiPolygon") {
+      var mx = 0;
+      $.each(obj.coordinates, function(i,_d){
+        var area = polygonArea(_d[0],_d[0].length);
+        if (mx<area) {
+          importance = _d[0];
+          mx = area;
+        }
+      });
+    }
+    else importance = obj.coordinates[0];
+    _o["internal"] = {"center":getCentroid2(importance)};
+    _geoArray[0] = _o;
+
+    // tooltip
+    var TooltipMarker = '';
+
+    // leaflet.D3SvgOverlay
+    // https://github.com/teralytics/Leaflet.D3SvgOverlay
+    var d3Layer = L.d3SvgOverlay(function(sel, proj) {
+      var upd = sel.selectAll('path').data(_geoArray);
+      upd.enter()
+        .append('path')
+        .attr('d', proj.pathFromGeojson)
+        .attr('stroke', 'black')
+        .attr('fill', function(){
+          // 投票率に応じて塗りつぶし色を変更
+          return getColor(option[data_label]);
+      })
+        .attr('fill-opacity', '0.8');
+      upd.attr('stroke-width', 1 / proj.scale);
+      upd.on('mouseover', function(d) {
+              var Lati = d.internal.center[1];
+              var Longi = d.internal.center[0];
+
+              if (!isFinite(Lati)||!isFinite(Longi)) return;
+
+            var markerIcon = L.icon({
+                iconUrl: 'Empty_Icon.png',
+                iconSize: [38, 95],
+                shadowSize: [50, 64],
+                iconAnchor: [Lati, Longi],
+            });
+
+            TooltipMarker = new L.Marker([Lati, Longi], {
+                icon: markerIcon
+            });
+            map.addLayer(TooltipMarker);
+
+        var out =[];
+        for(var key in d.properties){
+          out.push("<strong>"+key+"</strong>: "+d.properties[key]);
+        }
+            TooltipMarker.bindPopup(out.join("<br/>"));
+            TooltipMarker.openPopup();
+          })
+      .on('mouseout', function(d) {
+        if (TooltipMarker != '') map.removeLayer(TooltipMarker);
+          });
+    });
+    //
+
+    map.addLayer(d3Layer);
+
+    var colorValue = Math.random() * 360;
+    var options = {
+      color: '#000',
+      //weight: 1,
+      fillColor: 'hsl(' + colorValue + ',100%,50%)',
+      radius: 30,
+      fillOpacity: 0.7,
+      //rotation: 90.0,
+      position: {
+        x: 0,
+        y: 0
+      },
+      offset: 0,
+      numberOfSides: 0,
+      width:15
+    };
+
+    options.data = {
+      '小池候補': parseFloat(option["小池"])/parseFloat(option["計"])*100,
+      '増田候補': parseFloat(option["増田"])/parseFloat(option["計"])*100,
+      '鳥越候補': parseFloat(option["鳥越"])/parseFloat(option["計"])*100
+      //,'○○候補': parseFloat(option["○○"])/parseFloat(option["計"])*100
+    };
+
+    options.chartOptions = {
+      '小池候補': {
+        fillColor: 'green',
+        minValue: 0,
+        maxValue: 50,
+        maxHeight: 40,
+        displayText: function (value) {
+          return value.toFixed(1)+"%";
+        }
+      },
+      '増田候補': {
+        fillColor: 'blue',
+        minValue: 0,
+        maxValue: 50,
+        maxHeight: 40,
+        displayText: function (value) {
+          return value.toFixed(1)+"%";
+        }
+      },
+      '鳥越候補': {
+        fillColor: 'yellow',
+        minValue: 0,
+        maxValue: 50,
+        maxHeight: 40,
+        displayText: function (value) {
+          return value.toFixed(1)+"%";
+        }
+      }
+      //,'○○候補': {
+      //  fillColor: 'gray',
+      //  minValue: 0,
+      //  maxValue: 50,
+      //  maxHeight: 40,
+      //  displayText: function (value) {
+      //    return value.toFixed(1)+"%";
+      //  }
+      //}
+    };
+
+    var pcmarker = new L.BarChartMarker(new L.LatLng(_o.internal.center[1], _o.internal.center[0]), options);
+    piecharts.push(pcmarker);
+    console.log("add piechart : "+uri);
+  });
+}
+
+// http://stackoverflow.com/questions/22796520/finding-the-center-of-leaflet-polygon
+var getCentroid2 = function (arr) {
+    var twoTimesSignedArea = 0;
+    var cxTimes6SignedArea = 0;
+    var cyTimes6SignedArea = 0;
+
+    var length = arr.length
+
+    var x = function (i) { return parseFloat(arr[i % length][0]) };
+    var y = function (i) { return parseFloat(arr[i % length][1]) };
+
+    for ( var i = 0; i < arr.length; i++) {
+        var twoSA = x(i)*y(i+1) - x(i+1)*y(i);
+        twoTimesSignedArea += twoSA;
+        cxTimes6SignedArea += (x(i) + x(i+1)) * twoSA;
+        cyTimes6SignedArea += (y(i) + y(i+1)) * twoSA;
+    }
+    var sixSignedArea = 3 * twoTimesSignedArea;
+    return [ cxTimes6SignedArea / sixSignedArea, cyTimes6SignedArea / sixSignedArea];        
+}
+
+function polygonArea(coord, numPoints) { 
+  area = 0;
+  j = numPoints-1;
+  for (i=0; i<numPoints; i++){
+    area = area +  (coord[j][0]+coord[i][0]) * (coord[j][1]-coord[i][1]); 
+    j = i;
+  }
+  return area/2;
+}
+
+</script>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-45357765-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+</body>
+</html>

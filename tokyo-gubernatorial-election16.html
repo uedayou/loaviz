@@ -103,7 +103,7 @@ var data = [
 {"uri":"http://uedayou.net/loa/東京都三宅村","投票率":64.25},
 {"uri":"http://uedayou.net/loa/東京都御蔵島村","投票率":82.38},
 {"uri":"http://uedayou.net/loa/東京都八丈町","投票率":63.53},
-{"uri":"http://uedayou.net/loa/東京都青ヶ島村","投票率":76.71},
+{"uri":"http://uedayou.net/loa/東京都青ケ島村","投票率":76.71},
 {"uri":"http://uedayou.net/loa/東京都小笠原村","投票率":67.86},
 ];
 
@@ -131,16 +131,6 @@ function getColor(d) {
 			  '#FFEDA0' ;
 }
 
-// 投票率の最小値を取得(使ってない)
-var min = d3.min(data, function (e) {
-    return e[data_label];
-});
-
-// 投票率の最大値を取得(使ってない)
-var max = d3.max(data, function (e) {
-    return e[data_label];
-});
-
 // Leafletによる地図表示
 var map = L.map('map').setView([35.709569368624195,139.40886352539062],11);
 var tiles = L.tileLayer('http://tile.openstreetmap.jp/{z}/{x}/{y}.png', {
@@ -167,16 +157,23 @@ legend.addTo(map);
 
 console.log("start loading.");
 map.spin(true);
+
+var req = [];
 $.each(data, function(i,d){
-	if (d.uri.lastIndexOf('http://uedayou.net/loa/', 0) !== 0) {
-		d.uri = 'http://uedayou.net/loa/'+d.uri;
-	}
-	loadPolygonFromLOAJ(d.uri, data[i]);
+  if (d.uri.lastIndexOf('http://uedayou.net/loa/', 0) !== 0) {
+    data[i].uri = 'http://uedayou.net/loa/'+d.uri;
+  }
+  req.push(loadPolygonFromLOAJ(d.uri,d));
+});
+
+$.when.apply($, req ).done(function(data) {
+  console.log("finished loading.");
+  map.spin(false);
 });
 
 function loadPolygonFromLOAJ(uri, option) {
 	var url = window.location.protocol=="https:"?uri.replace(/^http:/i,"https:"):uri;
-	$.ajaxQueue({
+	return $.ajax({
 	    url: url+".json"
 	}).done(function( json ) {
 		console.log(uri);
@@ -221,9 +218,6 @@ function loadPolygonFromLOAJ(uri, option) {
 		    .attr('d', proj.pathFromGeojson)
 		    .attr('stroke', 'black')
 		    .attr('fill', function(){
-		    	//var color = d3.interpolate("khaki", "red");
-		    	//return color((option[data_label]-min)/(max-min))
-		    	
 		    	// 投票率に応じて塗りつぶし色を変更
 			    return getColor(option[data_label]);
 			})
@@ -261,10 +255,6 @@ function loadPolygonFromLOAJ(uri, option) {
 		//
 
 		map.addLayer(d3Layer);
-		if (data[data.length-1].uri == uri) {
-			console.log("finished loading.");
-			map.spin(false);
-		}
 	});
 }
 
