@@ -560,7 +560,9 @@ $.each(data, function(i,d){
 });
 
 $.when.apply($, req ).done(function(data) {
+  // データローディング完了時にグラフを描画
   $.each(piecharts,function(k,v){map.addLayer(v)});
+  
   console.log("finished loading.");
   map.spin(false);
 });
