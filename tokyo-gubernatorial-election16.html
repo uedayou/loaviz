@@ -139,6 +139,8 @@ attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contri
 });
 map.addLayer(tiles);
 
+var group = L.featureGroup();
+
 // 凡例
 var legend = L.control({position: 'bottomright'});
 legend.onAdd = function (map) {
@@ -167,6 +169,7 @@ $.each(data, function(i,d){
 });
 
 $.when.apply($, req ).done(function(data) {
+  map.fitBounds(group.getBounds());
   console.log("finished loading.");
   map.spin(false);
 });
@@ -206,6 +209,8 @@ function loadPolygonFromLOAJ(uri, option) {
 		_o["internal"] = {"center":getCentroid2(importance)};
 		_geoArray[0] = _o;
 
+    group.addLayer(L.geoJson(_o));
+
 		// tooltip
 		var TooltipMarker = '';
 
@@ -220,37 +225,35 @@ function loadPolygonFromLOAJ(uri, option) {
 		    .attr('fill', function(){
 		    	// 投票率に応じて塗りつぶし色を変更
 			    return getColor(option[data_label]);
-			})
-		    .attr('fill-opacity', '0.8');
+			}).attr('fill-opacity', '0.8');
 			upd.attr('stroke-width', 1 / proj.scale);
 			upd.on('mouseover', function(d) {
-          		var Lati = d.internal.center[1];
-          		var Longi = d.internal.center[0];
+        var Lati = d.internal.center[1];
+        var Longi = d.internal.center[0];
 
-          		if (!isFinite(Lati)||!isFinite(Longi)) return;
+        if (!isFinite(Lati)||!isFinite(Longi)) return;
+		    var markerIcon = L.icon({
+		      iconUrl: 'Empty_Icon.png',
+		      iconSize: [38, 95],
+		      shadowSize: [50, 64],
+		      iconAnchor: [Lati, Longi],
+		    });
 
-		        var markerIcon = L.icon({
-		            iconUrl: 'Empty_Icon.png',
-		            iconSize: [38, 95],
-		            shadowSize: [50, 64],
-		            iconAnchor: [Lati, Longi],
-		        });
-
-		        TooltipMarker = new L.Marker([Lati, Longi], {
-		            icon: markerIcon
-		        });
-		        map.addLayer(TooltipMarker);
+		    TooltipMarker = new L.Marker([Lati, Longi], {
+		      icon: markerIcon
+		    });
+		    map.addLayer(TooltipMarker);
 
 				var out =[];
 				for(var key in d.properties){
 					out.push("<strong>"+key+"</strong>: "+d.properties[key]);
 				}
-		        TooltipMarker.bindPopup(out.join("<br/>"));
-		        TooltipMarker.openPopup();
-	        })
+		    TooltipMarker.bindPopup(out.join("<br/>"));
+		    TooltipMarker.openPopup();
+      })
 			.on('mouseout', function(d) {
 				if (TooltipMarker != '') map.removeLayer(TooltipMarker);
-	        });
+      });
 		});
 		//
 

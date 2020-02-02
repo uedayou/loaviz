@@ -116,6 +116,8 @@ attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contri
 });
 map.addLayer(tiles);
 
+var group = L.featureGroup();
+
 console.log("start loading.");
 map.spin(true);
 
@@ -128,6 +130,7 @@ $.each(data, function(i,d){
 });
 
 $.when.apply($, req ).done(function(data) {
+  map.fitBounds(group.getBounds());
   console.log("finished loading.");
   map.spin(false);
 });
@@ -163,7 +166,9 @@ function loadPolygonFromLOAJ(uri, option) {
 		}
 		else importance = obj.coordinates[0];
 		_o["internal"] = {"center":getCentroid2(importance)};
-		_geoArray[0] = _o;
+    _geoArray[0] = _o;
+
+    group.addLayer(L.geoJson(_o));
 
 		// tooltip
 		var TooltipMarker = '';
