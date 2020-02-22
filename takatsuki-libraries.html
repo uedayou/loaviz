@@ -672,7 +672,9 @@ function loadPolygonFromLOAJ(uri, option) {
 	    url: url+".json"
 	}).done(function( json ) {
 		//console.log(uri);
-		var json = json[uri];
+		//var json = json[uri];
+        // 最初のKeyを使用 
+        var json = json[Object.keys(json)[0]];
 		if ("http://www.opengis.net/ont/geosparql#asWKT" in json) ; else return;
 		var label = json["http://www.w3.org/2000/01/rdf-schema#label"][0]["value"];
 		var wkt = json["http://www.opengis.net/ont/geosparql#asWKT"][0]["value"];
