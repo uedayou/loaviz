@@ -36,7 +36,7 @@
     "grunt-contrib-uglify": "~0.2.4",
     "grunt": "~0.4.1",
     "sinon": "~1.7.3",
-    "jquery": "~1.8.3"
+    "jquery": "~3.5.0"
   },
   "keywords": [
     "ajax",
