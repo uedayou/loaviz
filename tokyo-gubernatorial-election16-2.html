@@ -24,18 +24,18 @@
 body {margin:0px;padding:0px;}
 /* 凡例のスタイル */
 .legend {
-    line-height: 18px;
-    color: #555;
-    background-color: white;
-    padding: 10;
-    border-radius: 10px;
+  line-height: 18px;
+  color: #555;
+  background-color: white;
+  padding: 10;
+  border-radius: 10px;
 }
 .legend i {
-    width: 18px;
-    height: 18px;
-    float: left;
-    margin-right: 8px;
-    opacity: 0.7;
+  width: 18px;
+  height: 18px;
+  float: left;
+  margin-right: 8px;
+  opacity: 0.7;
 }
 </style>
 </head>
@@ -523,16 +523,16 @@ var group = L.featureGroup();
 // 地図の凡例
 var legend = L.control({position: 'bottomright'});
 legend.onAdd = function (map) {
-    var div = L.DomUtil.create('div', 'info legend'),
-        //grades = [53, 55, 57, 59, 61, 63, 65, 70],
-        grades = data_grades,
-        labels = [];
-    for (var i = 0; i < grades.length; i++) {
-        div.innerHTML +=
-            '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
-            grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
-    }
-    return div;
+  var div = L.DomUtil.create('div', 'info legend'),
+    //grades = [53, 55, 57, 59, 61, 63, 65, 70],
+    grades = data_grades,
+    labels = [];
+  for (var i = 0; i < grades.length; i++) {
+    div.innerHTML +=
+      '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+      grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+  }
+  return div;
 };
 legend.addTo(map);
 
@@ -575,7 +575,11 @@ function loadPolygonFromLOAJ(uri, option) {
       url: url+".json"
   }).done(function( json ) {
     console.log(uri);
-    var json = json[uri];
+    if (uri in json) {
+      json = json[uri];
+    } else {
+      json = json[Object.keys(json)[0]];
+    }
     if ("http://www.opengis.net/ont/geosparql#asWKT" in json) ; else return;
     var label = json["http://www.w3.org/2000/01/rdf-schema#label"][0]["value"];
     var wkt = json["http://www.opengis.net/ont/geosparql#asWKT"][0]["value"];
@@ -725,23 +729,23 @@ function loadPolygonFromLOAJ(uri, option) {
 
 // http://stackoverflow.com/questions/22796520/finding-the-center-of-leaflet-polygon
 var getCentroid2 = function (arr) {
-    var twoTimesSignedArea = 0;
-    var cxTimes6SignedArea = 0;
-    var cyTimes6SignedArea = 0;
+  var twoTimesSignedArea = 0;
+  var cxTimes6SignedArea = 0;
+  var cyTimes6SignedArea = 0;
 
-    var length = arr.length
+  var length = arr.length
 
-    var x = function (i) { return parseFloat(arr[i % length][0]) };
-    var y = function (i) { return parseFloat(arr[i % length][1]) };
+  var x = function (i) { return parseFloat(arr[i % length][0]) };
+  var y = function (i) { return parseFloat(arr[i % length][1]) };
 
-    for ( var i = 0; i < arr.length; i++) {
-        var twoSA = x(i)*y(i+1) - x(i+1)*y(i);
-        twoTimesSignedArea += twoSA;
-        cxTimes6SignedArea += (x(i) + x(i+1)) * twoSA;
-        cyTimes6SignedArea += (y(i) + y(i+1)) * twoSA;
-    }
-    var sixSignedArea = 3 * twoTimesSignedArea;
-    return [ cxTimes6SignedArea / sixSignedArea, cyTimes6SignedArea / sixSignedArea];        
+  for ( var i = 0; i < arr.length; i++) {
+    var twoSA = x(i)*y(i+1) - x(i+1)*y(i);
+    twoTimesSignedArea += twoSA;
+    cxTimes6SignedArea += (x(i) + x(i+1)) * twoSA;
+    cyTimes6SignedArea += (y(i) + y(i+1)) * twoSA;
+  }
+  var sixSignedArea = 3 * twoTimesSignedArea;
+  return [ cxTimes6SignedArea / sixSignedArea, cyTimes6SignedArea / sixSignedArea];        
 }
 
 function polygonArea(coord, numPoints) { 
@@ -751,7 +755,7 @@ function polygonArea(coord, numPoints) {
     area = area +  (coord[j][0]+coord[i][0]) * (coord[j][1]-coord[i][1]); 
     j = i;
   }
-  return area/2;
+  return Math.abs(area/2);
 }
 
 </script>
