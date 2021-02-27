@@ -136,7 +136,7 @@ $.when.apply($, req ).done(function(data) {
 });
 
 function loadPolygonFromLOAJ(uri, option) {
-  var url = window.location.protocol=="http:"?uri.replace(/^http:/i,"https:"):uri;
+  var url = uri.replace(/^http:/i,"https:");
   return $.ajax({
       url: url+".json"
   }).done(function( json ) {
